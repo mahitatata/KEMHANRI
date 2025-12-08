@@ -16,6 +16,13 @@ if (isset($_POST['register'])) {
     exit;
 }
 
+// 🔍 Cek apakah email sudah terdaftar
+$checkEmail = mysqli_query($conn, "SELECT email FROM regsitrasi WHERE email = '$email_escaped'");
+if (mysqli_num_rows($checkEmail) > 0) {
+    header("Location: register.php?error=" . urlencode("Email sudah terdaftar!"));
+    exit;
+}
+
     // 🧩 Tentukan role otomatis
     if ($email === "admin1@kemhan.go.id") {
         $role = "admin";

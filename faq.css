@@ -41,7 +41,7 @@ body {
   text-align: center;
   font-size: 32px;
   font-weight: 700;
-  margin-top: 40px; /* gunakan margin, bukan padding-top */
+  margin-top: 40px; 
   margin-bottom: 25px;
   color: #a30202;
   letter-spacing: 0.5px;
@@ -140,19 +140,18 @@ body {
 
 /* Jawaban */
 .faq-answer {
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  padding: 0 16px; /* default: no vertical padding */
+  padding: 16px 16px 24px; /* langsung permanen */
+  padding-top: 0; /* di awal terlihat tertutup */
+  padding-bottom: 0;
   transition: max-height 0.42s cubic-bezier(.2,.8,.2,1),
-              opacity 0.22s ease,
-              padding 0.32s cubic-bezier(.2,.8,.2,1);
-  will-change: max-height, opacity, padding;
+              opacity 0.22s ease;
 }
 
 .faq-item.active .faq-answer {
-  /* allow JS to set exact max-height; this rule keeps padding when active */
-  padding: 16px;
+  max-height: 1000px;
+  opacity: 1;
+  padding-top: 16px;
+  padding-bottom: 24px;
 }
 
 .faq-item .answer {
