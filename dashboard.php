@@ -669,7 +669,7 @@ tbody tr:hover {
   background: #fafafa;      /* ✅ kasih highlight pas hover */
 }
 
-  .cards {
+ .cards {
   display: flex;
   gap: 20px;
   margin: 20px 0;

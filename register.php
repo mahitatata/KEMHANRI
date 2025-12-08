@@ -29,12 +29,25 @@ if (isset($_POST['register'])) {
     $sql = "INSERT INTO regsitrasi (nama, email, satker, password, role)
             VALUES ('$nama', '$email', '$satker', '$password', '$role')";
     if ($conn->query($sql) === TRUE) {
-        header("Location: login.php?success=1");
-        exit;
+
+    session_start();
+    $_SESSION['email'] = $email;
+    $_SESSION['role'] = $role;
+    $_SESSION['nama'] = $nama;
+
+    if ($role === "admin") {
+        header("Location: dashboard.php");
+    } elseif ($role === "pegawai") {
+        header("Location: pegawai.php");
     } else {
-        echo "Error: " . $conn->error;
+        header("Location: index.php");
     }
-}
+    exit;
+
+} else {
+    // Error ketika INSERT, bukan ketika halaman pertama dibuka
+    echo "Error: " . $conn->error;
+}}
 ?>
 
 
@@ -422,34 +435,15 @@ function showToast(msg) {
         </form>
     </div>
     
-    <script>
-        const toggle = document.getElementById('satker-toggle');
-        const menu = document.getElementById('satker-menu');
-        const hiddenInput = document.getElementById('satker');
-        const menuItems = menu.querySelectorAll('li');
-        
-        // Menampilkan/menyembunyikan menu saat diklik
-        toggle.addEventListener('click', () => {
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-        });
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const satkerInput = document.getElementById("satker");
 
-        // Menyembunyikan menu dropdown
-        document.addEventListener('click', (event) => {
-            if (!toggle.contains(event.target) && !menu.contains(event.target)) {
-                menu.style.display = 'none';
-            }
-        });
+    satkerInput.addEventListener("click", function() {
+        this.select();  
+    });
+});
+</script>
 
-        menuItems.forEach(item => {
-            item.addEventListener('click', () => {
-                menuItems.forEach(i => i.classList.remove('selected'));
-                item.classList.add('selected');
-                
-                toggle.textContent = item.textContent;
-                hiddenInput.value = item.dataset.value;
-                menu.style.display = 'none'; 
-            });
-        });
-    </script>
 </body>
 </html>
