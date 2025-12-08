@@ -7,7 +7,9 @@
 
     body {
       background-color: #fff;
-      padding-top: 70px; /* biar konten gak ketutup navbar fixed */
+      /* padding-top diatur oleh header.css menggunakan --main-header-height
+         agar header fixed konsisten di semua halaman. */
+      padding-top: 0;
     }
 
 /* Container untuk konten utama */

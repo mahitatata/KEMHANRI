@@ -12,6 +12,22 @@
     left: 0;
 }
 
+/* Fix header height so it doesn't 'goyang' saat pindah halaman.
+   Body gets the same top padding so konten tidak melompat. */
+:root {
+  --main-header-height: 82px;
+}
+
+/* Pastikan header memiliki tinggi tetap */
+.main-header {
+  height: var(--main-header-height);
+}
+
+/* Beri ruang di atas konten agar header fixed tidak menutupi elemen */
+body {
+  padding-top: var(--main-header-height);
+}
+
 .nav-left, .nav-right {
     display: flex;
     align-items: center;

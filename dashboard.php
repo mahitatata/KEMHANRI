@@ -302,7 +302,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'fetch_pegawai') {
   border-radius: 8px;
 }
 
-/* Dropdown notifikasi */
+/* Dropdown notifikasi (ditampilkan melalui kelas .open, bukan :hover) */
 .notif-dropdown {
   display: none;
   position: absolute;
@@ -316,7 +316,8 @@ if (isset($_GET['action']) && $_GET['action'] == 'fetch_pegawai') {
   padding: 10px;
 }
 
-.icon-bell:hover .notif-dropdown {
+/* tampilkan saat .open ditambahkan ke .icon-bell (dikelola lewat JS) */
+.icon-bell.open .notif-dropdown {
   display: block;
 }
 
@@ -842,6 +843,10 @@ tbody tr:hover {
   padding: 10px;
 }
 
+.icon-bell.open .notif-dropdown {
+  display: block;
+}
+
 .notif-dropdown h4 {
   margin: 0 0 10px;
   font-size: 14px;
@@ -1124,10 +1129,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const notifBell = document.getElementById('notifBell');
   const notifDropdown = notifBell?.querySelector('.notif-dropdown');
   if (notifBell && notifDropdown) {
+    // Toggle dropdown via class 'open' — lebih stabil daripada style.display
     notifBell.addEventListener('click', (e) => {
       e.stopPropagation();
-      notifDropdown.style.display =
-        notifDropdown.style.display === 'block' ? 'none' : 'block';
+      notifBell.classList.toggle('open');
+    });
+
+    // Klik di dalam dropdown tidak menutupnya
+    notifDropdown.addEventListener('click', (e) => {
+      e.stopPropagation();
     });
   }
 
@@ -1143,9 +1153,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // === 6. Klik di luar → tutup semua dropdown ===
   document.addEventListener('click', (e) => {
-    // Notifikasi
+    // Notifikasi: tutup jika klik di luar elemen bell
     if (notifDropdown && !notifBell.contains(e.target)) {
-      notifDropdown.style.display = 'none';
+      notifBell.classList.remove('open');
     }
     // Profil
     if (profileDropdown && !profileButton.contains(e.target)) {

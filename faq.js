@@ -58,21 +58,49 @@ header.addEventListener("click", function (e) {
 
   // ⬅️ WAJIB ADA
   item.classList.toggle("active");
-
-  // animasi buka / tutup
-  if (item.classList.contains("active")) {
-    answer.style.opacity = "1";
-
-    requestAnimationFrame(() => {
+    // animasi buka / tutup
+    if (item.classList.contains("active")) {
+        // OPEN: set explicit maxHeight so transition animates from 0 -> scrollHeight
         answer.style.maxHeight = answer.scrollHeight + "px";
-    });
+        // fade in after height change frame
+        requestAnimationFrame(() => {
+            answer.style.opacity = "1";
+        });
 
-} else {
+        // after transition of max-height finishes, remove inline maxHeight so height becomes auto
+        const onOpenEnd = function (ev) {
+            if (!ev || !ev.propertyName) return;
+            if (ev.propertyName.indexOf('max-height') === -1) return;
+            if (item.classList.contains('active')) {
+                answer.style.maxHeight = '';
+            }
+            answer.removeEventListener('transitionend', onOpenEnd);
+        };
+        answer.addEventListener('transitionend', onOpenEnd);
 
-    answer.style.maxHeight = "0px";
-    answer.style.opacity = "0";
+    } else {
+        // CLOSE: ensure we have a fixed start height, then animate to 0
+        // if maxHeight was '', compute current height via scrollHeight
+        const cur = answer.scrollHeight;
+        answer.style.maxHeight = cur + 'px';
+        // force reflow to apply the fixed height before animating to 0
+        // eslint-disable-next-line no-unused-expressions
+        answer.offsetHeight;
 
-}
+        // start fade-out then collapse height
+        answer.style.opacity = '0';
+        requestAnimationFrame(() => {
+            answer.style.maxHeight = '0px';
+        });
+
+        // cleanup listener (optional) — remove after transition
+        const onCloseEnd = function (ev) {
+            if (!ev || !ev.propertyName) return;
+            if (ev.propertyName.indexOf('max-height') === -1) return;
+            answer.removeEventListener('transitionend', onCloseEnd);
+        };
+        answer.addEventListener('transitionend', onCloseEnd);
+    }
 });
 
 });
