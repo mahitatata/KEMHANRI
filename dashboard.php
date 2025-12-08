@@ -191,30 +191,36 @@ if (isset($_GET['action']) && $_GET['action'] == 'fetch_pegawai') {
 /* Bell Icon */
 .icon-bell {
   position: relative;
-  background:#fff;
-  border:2px solid #999;
-  border-radius:50%;
-  padding:8px;
-  font-size:20px;
-  cursor:pointer;
-  box-shadow:0 3px 6px rgba(0,0,0,0.15);
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  color: #555;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   transition: all 0.2s ease;
 }
-
+.icon-bell:hover {
+  background: var(--maroon);
+  color: #fff;
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
 .icon-bell .badge {
   position: absolute;
-  top: -5px;
-  right: -8px;
+  top: -6px;
+  right: -6px;
   background: red;
   color: #fff;
+  font-size: 12px;
+  font-weight: bold;
   border-radius: 50%;
-  padding: 3px 6px;
-  font-size: 10px;
-}
-
-.icon-bell:hover {
-  transform: scale(1.1);
-  box-shadow:0 5px 10px rgba(0,0,0,0.25);
+  padding: 2px 6px;
 }
 
 /* Profile pill */
@@ -648,7 +654,7 @@ tbody tr:last-child td {
   border-bottom: 1px solid #acacacff;
 }
 .table-pegawai th {
-  background: #df6d6daa;  
+  background: #df6d6d63;  
   color: #000000ff;           
   font-weight: 600;
   text-align: center;
@@ -667,45 +673,6 @@ tbody tr:hover {
   display: flex;
   gap: 20px;
   margin: 20px 0;
-}
-
-/* Bell Icon - modern & kecil */
-.icon-bell {
-  background: #fff;
-  border: none;                /* tanpa border biar clean */
-  border-radius: 50%;
-  width: 34px;                 /* kecil & proporsional */
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;             /* lebih kecil */
-  cursor: pointer;
-  color: #555;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  transition: all 0.2s ease;
-}
-.icon-bell:hover {
-  background: var(--maroon);
-  color: #fff;
-  transform: scale(1.05);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-
-.icon-bell {
-  position: relative;
-}
-
-.icon-bell .badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: red;
-  color: #fff;
-  font-size: 12px;
-  font-weight: bold;
-  border-radius: 50%;
-  padding: 2px 6px;
 }
 
 /* Profile pill - modern compact */
