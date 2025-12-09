@@ -145,6 +145,7 @@ body {
   padding-bottom: 0;
   transition: max-height 0.42s cubic-bezier(.2,.8,.2,1),
               opacity 0.22s ease;
+  color: #292929;
 }
 
 .faq-item.active .faq-answer {
@@ -157,7 +158,6 @@ body {
 .faq-item .answer {
   background: #ffffff;
   border-radius: 0 0 5px 5px;
-  color: #292929;
 }
 
 /* ===== ADMIN EDIT BUTTON ===== */
