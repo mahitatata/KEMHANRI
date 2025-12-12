@@ -321,7 +321,7 @@ main {
     color: white;
     padding: 50px 20px;
     text-align: center;
-    margin-top: 100px;
+    margin-top: 50px;
     width: 100%;
     border-radius: 0;
     box-sizing: border-box;
@@ -1191,8 +1191,6 @@ $hasImage = ($gambar !== '' && $gambar !== null && file_exists("uploads/" . $gam
 
     <!-- Social Media -->
     <div class="footer-section sosmed">
-      <h4>Social Media</h4>
-      <div class="footer-section sosmed">
       <h4>Social Media</h4>
       <div class="social-icons">
         <a href="https://www.facebook.com/KementerianPertahananRI/" target="_blank"><i class="fab fa-facebook-f"></i></a>

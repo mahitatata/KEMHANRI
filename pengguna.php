@@ -81,8 +81,9 @@ $result = mysqli_query($conn, $query);
     background: white;
     border-radius: 14px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-    overflow: hidden;
     border: 1px solid #e3e6ea;
+    overflow-x: auto;
+    min-width: 700px;
   }
 
   table {
@@ -105,6 +106,18 @@ $result = mysqli_query($conn, $query);
     vertical-align: middle;
   }
 
+  .aksi-td {
+    text-align: center;
+}
+
+.aksi-td button {
+    margin: 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
   thead th {
     padding: 14px 16px;
     font-weight: 600;
@@ -115,7 +128,7 @@ $result = mysqli_query($conn, $query);
 
 tbody td {
     padding: 12px 16px;
-    border-bottom: 1px solid #eceef1;
+    border-bottom: 1px solid #cacacaff;
 }
 
 tbody td:first-child,
@@ -202,6 +215,7 @@ tbody tr:hover {
 
   .btn-danger {
     background-color: #b30000;
+    color: white !important;
     border: none;
     border-radius: 8px;
     font-weight: 600;
@@ -288,9 +302,9 @@ $statusText = ($diff <= 300) ? 'Online' : 'Offline';
   <td><?= $row['last_active'] ? htmlspecialchars($row['last_active']) : '-' ?></td>
 
   <!-- AKSI -->
-  <td style="display:flex; gap:6px; justify-content:center;">
+  <td class="aksi-td">
     <button class="btn btn-danger btn-sm" onclick="hapusUser(<?= $row['id'] ?>)">Hapus</button>
-  </td>
+</td>
 </tr>
 
 <?php endwhile; ?>

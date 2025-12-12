@@ -82,10 +82,21 @@ $riwayatArtikel = mysqli_query($conn, "
   }
 
   table {
-    width: 100%;
-    border-collapse: collapse !important;
-    margin-bottom: 25px;
-  }
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 30px;
+  background: transparent;
+}
+
+  .table-container {
+    margin: 25px auto;
+    width: 92%;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    border: 1px solid #e3e6ea;
+    overflow: hidden;
+}
 
   thead {
     background-color: #f6f7fb;
@@ -94,16 +105,49 @@ $riwayatArtikel = mysqli_query($conn, "
     border-bottom: 1px solid #e0e3e7;
   }
 
-  th, td {
-    text-align: center;
-    padding: 12px 14px;
-    font-size: 14.5px;
-    border-bottom: 1px solid #eceef1;
-    vertical-align: middle;
-  }
+  .table-container table {
+    width: 100%;
+    border-collapse: collapse;
+}
 
-  table, th, td {
-    border: 1px solid #c9c9c9 !important;
+/* hilangkan border default */
+.table-container th,
+.table-container td {
+    border: none !important;
+}
+  
+  thead th {
+  background: #d8dbea;
+  color: #333;
+  padding: 14px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 2px solid #cfd3e3;
+}
+
+tbody td {
+  padding: 18px 16px;
+  font-size: 14.5px;
+  color: #333;
+  text-align: center;
+  border-bottom: 1px solid #b6b6b6ff; /* HANYA GARIS BAWAH */
+  vertical-align: middle;
+}
+
+tbody tr:hover {
+    background: #f7f8fc;
+}
+
+tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+thead th:first-child {
+  border-top-left-radius: 12px;
+}
+thead th:last-child {
+  border-top-right-radius: 12px;
 }
 
   tr:hover {
@@ -157,31 +201,31 @@ $riwayatArtikel = mysqli_query($conn, "
 }
 
   .badge-success {
-    background-color: #d1fae5;
-    color: #0f5132;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-weight: 600;
-    font-size: 13px;
-  }
+  background-color: #d1fae5;
+  color: #065f46;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 13px;
+}
 
-  .badge-danger {
-    background-color: #fee2e2;
-    color: #842029;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-weight: 600;
-    font-size: 13px;
-  }
+.badge-danger {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 13px;
+}
 
-  .badge-warning {
-    background-color: #fff3cd;
-    color: #664d03;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-weight: 600;
-    font-size: 13px;
-  }
+.badge-warning {
+  background-color: #fff3cd;
+  color: #664d03;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 13px;
+}
 
   .section-divider {
   border: none;

@@ -134,15 +134,15 @@ if (isset($_POST['register'])) {
         }
         
         .hanzone {
-            font-size: 24px; /* Dikecilkan */
+            font-size: 24px;
             font-weight: 800;
-            margin-top: 5px; /* Margin atas dikurangi */
+            margin-top: 5px; 
             letter-spacing: 1px;
         }
         
         .subtitle {
-            font-size: 13px; /* Dikecilkan */
-            margin-top: 3px; /* Margin atas dikurangi */
+            font-size: 13px; 
+            margin-top: -10px;
             opacity: 0.8;
         }
 
@@ -260,6 +260,11 @@ if (isset($_POST['register'])) {
             background: rgba(255, 255, 255, 0.1); 
             color: white;
             border: 1px solid white;
+        }
+
+        .btn-action.kembali:hover {
+            transform: translateY(-2px);
+           background: rgba(255, 255, 255, 0.2);
         }
 
         .login-link {

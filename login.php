@@ -142,7 +142,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         .subtitle {
             font-size: 13px; 
-            margin-top: 3px; 
+            margin-top: -10px !important; 
             opacity: 0.8;
         }
 
@@ -253,7 +253,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .btn-action:last-child:hover {
             background: #f0f0f0;
         }
-
 
         .login-link {
             text-align: center;

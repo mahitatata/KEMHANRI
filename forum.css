@@ -7,8 +7,6 @@
 
     body {
       background-color: #fff;
-      /* padding-top diatur oleh header.css menggunakan --main-header-height
-         agar header fixed konsisten di semua halaman. */
       padding-top: 0;
     }
 

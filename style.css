@@ -225,6 +225,7 @@
   border: 2px solid #b2b2b2ca !important;
   border-radius: 15px !important;
   overflow: hidden !important;
+  cursor: pointer;
 }
 
 .faq-item.active {

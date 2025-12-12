@@ -516,7 +516,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'fetch_pegawai') {
   display: flex;
   justify-content: center;
   align-items: center;  
-  margin: 15px 0 20px;
+  margin: 35px 0 30px;
   position: relative;
 }
 
@@ -1020,11 +1020,9 @@ tbody tr:hover {
       </div>
       
       <!-- status aktif -->
-      <hr class="divider">
       <div class="status-header">
   <h2>Status Aktif Pegawai</h2>
 </div>
-        <hr class="divider">
              
    <table class="table-pegawai" id="tabelPegawai">
 <thead>

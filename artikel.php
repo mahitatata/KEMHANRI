@@ -163,15 +163,19 @@ $isLoggedIn = isset($_SESSION['email']);
                     <p class="author-credit">✍️ Ditulis oleh <strong><?= htmlspecialchars($row['nama_penulis']); ?></strong></p>
                 <?php endif; ?>
                 <?php if ($role === 'admin'): ?>
+                    
+    <div class="archive-wrapper">
     <?php if ($row['arsip'] == 0): ?>
         <button class="arsip-btn" data-id="<?= $row['id']; ?>">
-    <i class="fas fa-archive"></i>
-</button>
+            <i class="fas fa-archive"></i> Arsipkan
+        </button>
     <?php else: ?>
         <button class="unarsip-btn" data-id="<?= $row['id']; ?>">
-    <i class="fas fa-undo"></i> Kembalikan
-</button>
+            <i class="fas fa-undo"></i> Kembalikan
+        </button>
     <?php endif; ?>
+</div>
+
 <?php endif; ?>
                 <div class="article-meta">
                     <div class="article-tags">

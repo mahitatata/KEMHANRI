@@ -43,19 +43,24 @@ if (session_status() == PHP_SESSION_NONE) {
       <button class="btn-login">
         <i class="fas fa-user"></i> <?= htmlspecialchars($_SESSION['nama']); ?>
       </button>
+
       <div class="dropdown-content">
+          <a href="profile.php">Profile</a>
+
           <?php if ($_SESSION['role'] === 'pegawai'): ?>
             <a href="dashboardpegawai.php">Dashboard Pegawai</a>
           <?php elseif ($_SESSION['role'] === 'admin'): ?>
             <a href="dashboard.php">Dashboard Admin</a>
           <?php endif; ?>
+
           <a href="logout.php">Keluar</a>
-        </div>
       </div>
-    <?php else: ?>
-      <a class="btn-login" href="login.php">Masuk</a>
-      <a class="btn-login" href="register.php">Daftar</a>
-    <?php endif; ?>
+    </div>
+<?php else: ?>
+    <a class="btn-login" href="login.php">Masuk</a>
+    <a class="btn-login" href="register.php">Daftar</a>
+<?php endif; ?>
+
   </nav>
 </header>
 <script src="header.js"></script>
