@@ -236,7 +236,7 @@ if (!isset($_SESSION['nama'])) {
 <body>
 
 <!-- Hilangkan header dashboard -->
-<a href="index.php" class="btn-back-shopee">
+<a href="javascript:history.back()" class="btn-back-shopee">
     <svg class="arrow-shopee" viewBox="0 0 24 24">
         <path d="M15 6 L9 12 L15 18"></path>
     </svg>

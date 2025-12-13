@@ -37,19 +37,6 @@ if ($artikel['tipe'] === 'internal') {
     }
 }
 
-// Kalau ada parameter 'from' di URL, pakai itu
-if (isset($_GET['from'])) {
-    $routes = [
-        'beranda' => 'index.php',
-        'artikel' => 'artikel.php',
-        'pegawai' => 'pegawai.php'
-    ];
-
-    if (isset($routes[$_GET['from']])) {
-        $backUrl = $routes[$_GET['from']];
-    }
-}
-
 $isLoggedIn = isset($_SESSION['email']);
 $nama_user = $_SESSION['nama'] ?? $_SESSION['email'] ?? "Anonim";
 $pegawai_id = $_SESSION['pegawai_id'] ?? null;
@@ -395,7 +382,7 @@ body{font-family:'Inter',sans-serif;margin:0;background:#f9fafb;color:#333;}
 </head>
 <body>
 <main class="container">
-<a href="<?= $backUrl ?>" class="btn-back-shopee">
+<a href="javascript:history.back()" class="btn-back-shopee">
     <svg class="arrow-shopee" viewBox="0 0 24 24">
         <path d="M15 6l-6 6 6 6" />
     </svg>
