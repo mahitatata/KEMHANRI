@@ -21,50 +21,55 @@ if (!isset($_SESSION['nama'])) {
         font-family: "Inter", sans-serif;
     }
 
- .btn-back-shopee {
+    .btn-back-shopee {
     position: fixed;
-    top: 20px;
-    left: calc(50% - 350px);  /* tepat kiri container */
+    top: 50px;
+    left: calc(50% - 450px); /* sejajar container */
+    width: 44px;
+    height: 44px;
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 44px;
-    height: 44px;
     background: #ffffff;
     border-radius: 50%;
     border: 1px solid #e5e5e5;
     text-decoration: none;
     cursor: pointer;
-    transition: 0.2s ease;
     box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    z-index: 999;
-}
+    z-index: 9999; /* pastikan di atas semua */
+   }
 
+    .btn-back-shopee::before {
+        content: "";
+        color: #7a0202;
+        position: absolute;
+        width: 58px;
+        height: 58px;
+        border-radius: 10%;
+        background: rgba(0,0,0,0.05);
+        z-index: -1;
+    }
 
-.btn-back-shopee::before {
-    content: "";
-    color: #7a0202;
-    position: absolute;
-    width: 58px;
-    height: 58px;
-    border-radius: 10%;
-    background: rgba(0,0,0,0.05);
-    z-index: -1;
-}
+    .btn-back-shopee:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        transform: scale(1.05);
+    }
 
-.btn-back-shopee:hover {
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
-    transform: scale(1.05);
-}
+    .arrow-shopee {
+        width: 22px;
+        stroke: #333;
+        stroke-width: 3.2;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
 
-.arrow-shopee {
-    width: 22px;
-    stroke: #333;
-    stroke-width: 3.2;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
+    @media (max-width: 900px) { /* Gunakan 900px agar tombol terlihat bagus di layar laptop kecil */
+        .btn-back-shopee {
+            left: 20px;
+            top: 20px;
+        }
+    }
 
     .profile-container {
         max-width: 650px;
@@ -123,21 +128,24 @@ if (!isset($_SESSION['nama'])) {
     }
 
     .field p {
-        background: #fafafa;
+        background: #e4e3e3ff;
         padding: 12px 16px;
-        border: 1px solid #e3e3e3;
+        border: 2px solid #c5c5c5ff;
+        box-shadow: #555;
         border-radius: 8px;
         font-size: 16px;
         color: #333;
     }
 
+    .field p,
+    .editable {
+        box-sizing: border-box; /* KUNCI UKURAN */
+        transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
     /* Responsive */
     @media (max-width: 600px) {
 
-    .btn-back-shopee {
-        left: 20px; /* kembali jadi kiri saat layar kecil */
-        top: 90px;
-    }
         .profile-container {
             margin: 100px 20px 30px;
             padding: 25px;
@@ -160,8 +168,8 @@ if (!isset($_SESSION['nama'])) {
 
     /* Smooth animation */
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to   { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; }
+        to   { opacity: 1; }
     }
     .editable {
     background: #fafafa;
@@ -184,14 +192,15 @@ if (!isset($_SESSION['nama'])) {
     background: #fff;
     font-size: 16px;
     box-shadow: 0 0 0 2px #a30202;
+    height: 12px;
+    line-height: 16px;
 }
 .eye-icon-modern {
     position: absolute;
-    right: 12px;
+    right: 10px;
     top: 50%;
     transform: translateY(-50%);
-    width: 28px;
-    height: 28px;
+    padding: 12px 16px;
     background: white;
     border-radius: 50%;
     display: flex;
@@ -200,6 +209,7 @@ if (!isset($_SESSION['nama'])) {
     box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     cursor: pointer;
     transition: 0.15s;
+    overflow: visible;
 }
 
 .eye-icon-modern:hover {
@@ -207,8 +217,13 @@ if (!isset($_SESSION['nama'])) {
 }
 .password-wrapper {
     position: relative;
-    width: 100%;
+    overflow: visible;
 }
+
+.password-wrapper input {
+    padding-right: 50px; /* ruang untuk icon mata */
+}
+
 .toast {
     position: fixed;
     top: 20px;
@@ -298,6 +313,7 @@ if (!isset($_SESSION['nama'])) {
 
 </div>
 <script>
+let isSaving = false;
 let activeInput = null;
 
 function activateEditable(item) {
@@ -355,13 +371,14 @@ function activateEditable(item) {
         // CLICK OUTSIDE CANCEL
         const clickOutside = function (e) {
 
-            if (e.target.closest("#btnSaveModern")) return;
-            if (wrapper && wrapper.contains(e.target)) return;
-            if (input.contains(e.target)) return;
+    if (isSaving) return; // ⬅️ FIX UTAMA
+    if (e.target.closest("#btnSaveModern")) return;
+    if (wrapper && wrapper.contains(e.target)) return;
+    if (input.contains(e.target)) return;
 
-            document.removeEventListener("click", clickOutside);
-            restore();
-        };
+    document.removeEventListener("click", clickOutside);
+    restore();
+};
 
         setTimeout(() => {
             document.addEventListener("click", clickOutside);
@@ -390,7 +407,13 @@ function saveInline(field, newValue, wrapperOrInput) {
     let p = document.createElement("p");
     p.className = "editable";
     p.dataset.field = field;
-    p.innerText = field === "password" ? "********" : newValue;
+
+    if (field === "nama") {
+        p.id = "namaDisplay"; // ⬅️ FIX UTAMA
+        p.innerText = newValue;
+    } else {
+        p.innerText = "********";
+    }
 
     wrapperOrInput.replaceWith(p);
 
@@ -401,13 +424,27 @@ function saveInline(field, newValue, wrapperOrInput) {
 // =============== SAVE TO SERVER ===================
 document.getElementById("btnSaveModern").onclick = function () {
 
+    isSaving = true; // ⬅️ KUNCI CLICK OUTSIDE
+
     let inputNama = document.querySelector(".inline-input[data-field='nama']");
     let namaBaru = inputNama
         ? inputNama.value.trim()
-        : document.getElementById("namaDisplay")?.innerText.trim();
+        : document.getElementById("namaDisplay").innerText.trim();
 
     let passInput = document.querySelector(".password-wrapper input");
     let passBaru = passInput ? passInput.value.trim() : "";
+
+    if (passBaru !== "") {
+    const v = validatePassword(passBaru);
+
+    if (!v.length || !v.upper || !v.lower || !v.number || !v.symbol) {
+        showToast(
+            "Password minimal 8 karakter, huruf besar, kecil, angka, dan simbol"
+        );
+        isSaving = false;
+        return;
+    }
+}
 
     fetch("update_profile.php", {
         method: "POST",
@@ -417,15 +454,29 @@ document.getElementById("btnSaveModern").onclick = function () {
             password: passBaru
         })
     })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === "ok") {
-                showToast("Perubahan berhasil disimpan!");
-                document.getElementById("namaDisplay").innerText = namaBaru;
-            } else {
-                showToast("Gagal menyimpan perubahan");
-            }
-        });
+    .then(res => res.json())
+    .then(data => {
+        isSaving = false; // ⬅️ BUKA LAGI
+
+        if (data.status === "ok") {
+    showToast("Perubahan berhasil disimpan!");
+
+    // Update nama
+    const namaEl = document.querySelector(".editable[data-field='nama']");
+    if (namaEl) namaEl.innerText = data.nama;
+
+    // Update avatar huruf
+    document.querySelector(".avatar").innerText =
+        data.nama.charAt(0).toUpperCase();
+        } else {
+            showToast(data.message || "Gagal menyimpan perubahan");
+        }
+    })
+    .catch(err => {
+        isSaving = false;
+        console.error(err);
+        showToast("Terjadi kesalahan");
+    });
 };
 
 // TOAST
@@ -437,6 +488,17 @@ function showToast(message) {
     setTimeout(() => {
         toast.classList.remove("show");
     }, 3000);
+}
+function validatePassword(pw) {
+    const rules = {
+        length: pw.length >= 8,
+        upper: /[A-Z]/.test(pw),
+        lower: /[a-z]/.test(pw),
+        number: /[0-9]/.test(pw),
+        symbol: /[@$!%*#?&]/.test(pw)
+    };
+
+    return rules;
 }
 </script>
 

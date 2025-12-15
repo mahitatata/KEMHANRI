@@ -1,38 +1,64 @@
 <?php
 session_start();
-header("Content-Type: application/json");
 include "koneksi.php";
 
-if (!isset($_SESSION['id'])) {
-    echo json_encode(["status" => "error", "msg" => "Session ID tidak ditemukan"]);
+header("Content-Type: application/json");
+
+if (!isset($_SESSION['nama'])) {
+    echo json_encode(["status" => "error"]);
     exit;
 }
 
-$id = $_SESSION['id'];
-
 $data = json_decode(file_get_contents("php://input"), true);
 
-$nama = $data['nama'] ?? null;
-$password = $data['password'] ?? null;
+$nama = trim($data['nama'] ?? '');
+$password = trim($data['password'] ?? '');
 
-// UPDATE NAMA
-if (!empty($nama)) {
-
-    $stmt = $conn->prepare("UPDATE regsitrasi SET nama=? WHERE ID=?");
-    $stmt->bind_param("si", $nama, $id);
-    $stmt->execute();
-
-    $_SESSION['nama'] = $nama;
+if ($nama === '') {
+    echo json_encode(["status" => "error"]);
+    exit;
 }
 
-// UPDATE PASSWORD
-if (!empty($password)) {
+$nama_baru = $conn->real_escape_string($nama);
+$nama_lama = $conn->real_escape_string($_SESSION['nama']);
 
-    $hashed = password_hash($password, PASSWORD_DEFAULT);
-
-    $stmt = $conn->prepare("UPDATE regsitrasi SET password=? WHERE ID=?");
-    $stmt->bind_param("si", $hashed, $id);
-    $stmt->execute();
+if ($password !== '') {
+    $password_hash = password_hash($password, PASSWORD_DEFAULT);
+    $sql = "UPDATE regsitrasi SET nama='$nama_baru', password='$password_hash' WHERE nama='$nama_lama'";
+} else {
+    $sql = "UPDATE regsitrasi SET nama='$nama_baru' WHERE nama='$nama_lama'";
 }
 
-echo json_encode(["status" => "ok"]);
+if (!$conn->query($sql)) {
+    echo json_encode(["status" => "error"]);
+    exit;
+}
+
+if ($password !== '') {
+
+    if (
+        strlen($password) < 8 ||
+        !preg_match('/[A-Z]/', $password) ||
+        !preg_match('/[a-z]/', $password) ||
+        !preg_match('/[0-9]/', $password) ||
+        !preg_match('/[@$!%*#?&]/', $password)
+    ) {
+        echo json_encode([
+            "status" => "error",
+            "message" => "Password tidak memenuhi standar keamanan"
+        ]);
+        exit;
+    }
+
+    $password_hash = password_hash($password, PASSWORD_DEFAULT);
+}
+
+// UPDATE SESSION
+$_SESSION['nama'] = $nama_baru;
+
+// ⬇️ PENTING: HANYA INI OUTPUTNYA
+echo json_encode([
+    "status" => "ok",
+    "nama" => $nama_baru
+]);
+exit;
