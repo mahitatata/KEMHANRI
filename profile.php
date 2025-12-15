@@ -135,6 +135,7 @@ if (!isset($_SESSION['nama'])) {
         border-radius: 8px;
         font-size: 16px;
         color: #333;
+        margin: 0;
     }
 
     .field p,
@@ -192,8 +193,10 @@ if (!isset($_SESSION['nama'])) {
     background: #fff;
     font-size: 16px;
     box-shadow: 0 0 0 2px #a30202;
-    height: 12px;
-    line-height: 16px;
+    box-sizing: border-box;
+    margin: 0;
+    display: block;
+    color: #333;
 }
 .eye-icon-modern {
     position: absolute;
