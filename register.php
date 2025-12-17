@@ -388,7 +388,7 @@ if (isset($_POST['register'])) {
             </div>
 
             <div class="form-actions">
-                <button type="button" class="btn-action kembali" onclick="window.location.href='index.php'">Kembali</button>
+                <button type="button" class="btn-action kembali" onclick="window.location.href='javascript:history.back()'">Kembali</button>
                 <button type="submit" class="btn-action daftar" name="register">Daftar</button>
             </div>
 

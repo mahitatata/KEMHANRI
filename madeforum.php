@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     textarea {
       width: 100%;
       padding: 12px 14px;
-      border: 1px solid #ddd;
+      border: 2px solid #cdcdcdff;
       border-radius: 10px;
       font-size: 0.95rem;
       transition: all 0.2s;

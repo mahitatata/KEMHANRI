@@ -357,7 +357,7 @@
 .article-title {
   font-size: 18px;
   font-weight: 700;
-  color: #a30202;
+  color: #242424ff;
   margin: 0 0 8px 0;
   line-height: 1.3;
   transition: color 0.3s ease;
@@ -667,7 +667,7 @@ footer, .footer-section, .social-icons a {
   margin-bottom: 12px;
 }
 .popup-login p {
-  color: #555;
+  color: #434343;
   font-size: 15px;
   line-height: 1.5;
   margin-bottom: 25px;
@@ -692,9 +692,9 @@ footer, .footer-section, .social-icons a {
   transform: scale(1.05);
 }
 .popup-btn-cancel {
-  background: #e0e0e0;
+  background: #cacaca;
   border: none;
-  color: #333;
+  color: #1f1f1f;
   padding: 10px 26px;
   border-radius: 10px;
   cursor: pointer;
@@ -703,7 +703,7 @@ footer, .footer-section, .social-icons a {
   transition: all 0.3s ease;
 }
 .popup-btn-cancel:hover {
-  background: #cfcfcf;
+  background: #bbbbbb;
   transform: scale(1.05);
 }
 

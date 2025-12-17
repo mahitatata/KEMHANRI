@@ -148,7 +148,7 @@ $id_pembuat = $artikel['pegawai_id'];
 body{font-family:'Inter',sans-serif;margin:0;background:#f9fafb;color:#333;}
 .container{max-width:800px;margin:2rem auto;padding:0 1rem;}
 .artikel-box{background:#fff;padding:2rem;border-radius:12px;box-shadow:0 4px 12px rgba(154, 154, 154, 0.08);margin-bottom:2rem;}
-.artikel-box h1{margin-top:0;font-size:1.8rem;}
+.artikel-box h1{margin-top:0;font-size:1.8rem;color: #242424ff;}
 .artikel-date{font-size:0.9rem;color:#888;margin-bottom:1rem;}
 .artikel-image img{width:100%;max-height:380px;border-radius:0;border:none;object-fit:cover;box-shadow:0 4px 10px rgba(22, 22, 22, 0.1);border:3px solid #7c0000ff;margin:20px 0;}
 .label-internal {display: inline-block;background: #830000;color: white;font-size: 0.75rem;font-weight: 700;padding: 4px 10px;border-radius: 6px;margin-left: 10px;text-transform: uppercase;letter-spacing: 1px;}
@@ -270,7 +270,7 @@ body{font-family:'Inter',sans-serif;margin:0;background:#f9fafb;color:#333;}
   margin-bottom: 12px;
 }
 .popup-login p {
-  color: #555;
+  color: #434343;
   font-size: 15px;
   line-height: 1.5;
   margin-bottom: 25px;
@@ -295,9 +295,9 @@ body{font-family:'Inter',sans-serif;margin:0;background:#f9fafb;color:#333;}
   transform: scale(1.05);
 }
 .popup-btn-cancel {
-  background: #e0e0e0;
+  background: #cacaca;
   border: none;
-  color: #333;
+  color: #1f1f1f;
   padding: 10px 26px;
   border-radius: 10px;
   cursor: pointer;
@@ -306,7 +306,7 @@ body{font-family:'Inter',sans-serif;margin:0;background:#f9fafb;color:#333;}
   transition: all 0.3s ease;
 }
 .popup-btn-cancel:hover {
-  background: #cfcfcf;
+  background: #bbbbbb;
   transform: scale(1.05);
 }
 

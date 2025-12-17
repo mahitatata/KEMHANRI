@@ -13,6 +13,7 @@ if (!isset($_SESSION['nama'])) {
     <link rel="icon" type="image/png" href="logo kemhan 1.png">
     <title>Profile</title>
     <link rel="stylesheet" href="profile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
 
 <style>
     body {
@@ -46,12 +47,11 @@ if (!isset($_SESSION['nama'])) {
         width: 58px;
         height: 58px;
         border-radius: 10%;
-        background: rgba(0,0,0,0.05);
         z-index: -1;
     }
 
     .btn-back-shopee:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.49);
         transform: scale(1.05);
     }
 
@@ -198,33 +198,44 @@ if (!isset($_SESSION['nama'])) {
     display: block;
     color: #333;
 }
-.eye-icon-modern {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    padding: 12px 16px;
-    background: white;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    cursor: pointer;
-    transition: 0.15s;
-    overflow: visible;
-}
-
-.eye-icon-modern:hover {
-    transform: translateY(-50%) scale(1.05);
-}
 .password-wrapper {
     position: relative;
-    overflow: visible;
+    width: 100%;
 }
 
 .password-wrapper input {
-    padding-right: 50px; /* ruang untuk icon mata */
+    width: 100%;
+    padding: 12px 16px;
+    padding-right: 42px;
+    border-radius: 8px;
+    border: 1px solid #e3e3e3;
+    font-size: 16px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #a30202;
+    font-size: 16px;
+}
+
+.password-display {
+    background: #e4e3e3ff;
+    padding: 12px 16px;
+    border: 2px solid #c5c5c5ff;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.password-display:hover {
+    background: #f0f0f0;
+}
+
+.hidden {
+    display: none;
 }
 
 .toast {
@@ -288,11 +299,25 @@ if (!isset($_SESSION['nama'])) {
     </div>
 
     <div class="field">
-        <label>Password</label>
-        <p id="passwordDisplay" class="editable" data-field="password">
-    ********
-</p>
+    <label>Password</label>
+
+    <!-- MODE DIAM (TITIK-TITIK) -->
+    <p id="passwordDisplay" class="password-display">
+        ********
+    </p>
+
+    <!-- MODE EDIT -->
+    <div class="password-wrapper hidden" id="passwordEdit">
+        <input
+            type="password"
+            id="passwordInput"
+            class="inline-input"
+            placeholder="Masukkan password baru"
+            autocomplete="new-password"
+        >
+        <i class="fas fa-eye toggle-password" id="togglePassword"></i>
     </div>
+</div>
 
     <button id="btnSaveModern" 
     style="
@@ -319,135 +344,142 @@ if (!isset($_SESSION['nama'])) {
 let isSaving = false;
 let activeInput = null;
 
+/* =======================
+   INLINE EDIT (NAMA SAJA)
+   ======================= */
 function activateEditable(item) {
-
     item.onclick = function () {
-
         if (activeInput) return;
 
         let oldValue = this.innerText.trim();
         let field = this.dataset.field;
+        if (field !== "nama") return;
 
-        let wrapper = null;
         let input = document.createElement("input");
-
-        input.type = field === "password" ? "password" : "text";
-        input.value = field === "password" ? "" : oldValue;
+        input.type = "text";
+        input.value = oldValue;
         input.className = "inline-input";
-        input.dataset.field = field; // FIX WAJIB
+        input.dataset.field = field;
 
-        // PASSWORD MODE
-        if (field === "password") {
-
-            wrapper = document.createElement("div");
-            wrapper.className = "password-wrapper";
-
-            let eye = document.createElement("div");
-            eye.className = "eye-icon-modern";
-            eye.innerHTML = `<svg width="20" height="20"><path fill="#a30202"
-                d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 
-                11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7zm0 
-                12a5 5 0 110-10 5 5 0 010 10zm0-8a3 
-                3 0 100 6 3 3 0 000-6z"/></svg>`;
-
-            eye.onclick = (ev) => {
-                ev.stopPropagation();
-                input.type = input.type === "password" ? "text" : "password";
-            };
-
-            wrapper.appendChild(input);
-            wrapper.appendChild(eye);
-            this.replaceWith(wrapper);
-
-        } else {
-            this.replaceWith(input);
-        }
-
+        this.replaceWith(input);
         activeInput = input;
         input.focus();
 
-        // ENTER → SAVE INLINE
         input.onkeydown = function (e) {
-            if (e.key === "Enter") saveInline(field, input.value, wrapper || input);
+            if (e.key === "Enter") restore(input.value);
         };
 
-        // CLICK OUTSIDE CANCEL
-        const clickOutside = function (e) {
+        function clickOutside(e) {
+            if (isSaving) return;
+            if (input.contains(e.target)) return;
 
-    if (isSaving) return; // ⬅️ FIX UTAMA
-    if (e.target.closest("#btnSaveModern")) return;
-    if (wrapper && wrapper.contains(e.target)) return;
-    if (input.contains(e.target)) return;
-
-    document.removeEventListener("click", clickOutside);
-    restore();
-};
+            document.removeEventListener("click", clickOutside);
+            restore(input.value);
+        }
 
         setTimeout(() => {
             document.addEventListener("click", clickOutside);
         }, 50);
 
-        function restore() {
+        function restore(val) {
             let p = document.createElement("p");
             p.className = "editable";
-            p.dataset.field = field;
-            p.innerText = field === "password" ? "********" : oldValue;
+            p.dataset.field = "nama";
+            p.id = "namaDisplay";
+            p.innerText = val || oldValue;
 
-            (wrapper || input).replaceWith(p);
+            input.replaceWith(p);
             activeInput = null;
             activateEditable(p);
         }
     };
 }
 
-// BIND AWAL
-document.querySelectorAll(".editable").forEach(activateEditable);
+document
+    .querySelectorAll(".editable[data-field='nama']")
+    .forEach(activateEditable);
 
+/* =======================
+   PASSWORD ELEMENTS
+   ======================= */
+const passwordInput   = document.getElementById("passwordInput");
+const togglePassword  = document.getElementById("togglePassword");
+const passwordDisplay = document.getElementById("passwordDisplay");
+const passwordEdit    = document.getElementById("passwordEdit");
 
-// =============== SAVE INLINE ELEMENT ===============
-function saveInline(field, newValue, wrapperOrInput) {
+/* =======================
+   TOGGLE PASSWORD (EYE)
+   ======================= */
+if (togglePassword && passwordInput) {
+    togglePassword.addEventListener("click", (e) => {
+        e.stopPropagation();
 
-    let p = document.createElement("p");
-    p.className = "editable";
-    p.dataset.field = field;
-
-    if (field === "nama") {
-        p.id = "namaDisplay"; // ⬅️ FIX UTAMA
-        p.innerText = newValue;
-    } else {
-        p.innerText = "********";
-    }
-
-    wrapperOrInput.replaceWith(p);
-
-    activeInput = null;
-    activateEditable(p);
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            togglePassword.classList.remove("fa-eye");
+            togglePassword.classList.add("fa-eye-slash");
+        } else {
+            passwordInput.type = "password";
+            togglePassword.classList.remove("fa-eye-slash");
+            togglePassword.classList.add("fa-eye");
+        }
+    });
 }
 
-// =============== SAVE TO SERVER ===================
+/* =======================
+   RESET PASSWORD VIEW
+   ======================= */
+function resetPasswordView() {
+    passwordInput.value = "";
+    passwordInput.type = "password";
+
+    togglePassword.classList.remove("fa-eye-slash");
+    togglePassword.classList.add("fa-eye");
+
+    passwordEdit.classList.add("hidden");
+    passwordDisplay.classList.remove("hidden");
+}
+
+/* =======================
+   PASSWORD STATE CONTROL
+   ======================= */
+passwordDisplay.addEventListener("click", (e) => {
+    e.stopPropagation();
+    passwordDisplay.classList.add("hidden");
+    passwordEdit.classList.remove("hidden");
+    passwordInput.focus();
+});
+
+document.addEventListener("click", (e) => {
+    if (
+        passwordEdit.classList.contains("hidden") ||
+        passwordEdit.contains(e.target) ||
+        passwordDisplay.contains(e.target)
+    ) return;
+
+    resetPasswordView();
+});
+
+/* =======================
+   SAVE KE SERVER
+   ======================= */
 document.getElementById("btnSaveModern").onclick = function () {
+    isSaving = true;
 
-    isSaving = true; // ⬅️ KUNCI CLICK OUTSIDE
+    let namaBaru =
+        document.querySelector(".inline-input[data-field='nama']")?.value.trim()
+        || document.getElementById("namaDisplay").innerText.trim();
 
-    let inputNama = document.querySelector(".inline-input[data-field='nama']");
-    let namaBaru = inputNama
-        ? inputNama.value.trim()
-        : document.getElementById("namaDisplay").innerText.trim();
-
-    let passInput = document.querySelector(".password-wrapper input");
-    let passBaru = passInput ? passInput.value.trim() : "";
+    let passBaru = passwordInput.value.trim();
 
     if (passBaru !== "") {
-    const v = validatePassword(passBaru);
-
-    if (!v.length || !v.upper || !v.lower || !v.number || !v.symbol) {
-        showToast(
-            "Password minimal 8 karakter, huruf besar, kecil, angka, dan simbol"
-        );
-        isSaving = false;
-        return;
+        const v = validatePassword(passBaru);
+        if (!v.length || !v.upper || !v.lower || !v.number || !v.symbol) {
+            showToast("Password minimal 8 karakter, huruf besar, kecil, angka, dan simbol");
+            isSaving = false;
+            return;
+        }
     }
-}
 
     fetch("update_profile.php", {
         method: "POST",
@@ -459,49 +491,44 @@ document.getElementById("btnSaveModern").onclick = function () {
     })
     .then(res => res.json())
     .then(data => {
-        isSaving = false; // ⬅️ BUKA LAGI
+        isSaving = false;
 
         if (data.status === "ok") {
-    showToast("Perubahan berhasil disimpan!");
+            showToast("Perubahan berhasil disimpan!");
 
-    // Update nama
-    const namaEl = document.querySelector(".editable[data-field='nama']");
-    if (namaEl) namaEl.innerText = data.nama;
+            document.getElementById("namaDisplay").innerText = data.nama;
+            document.querySelector(".avatar").innerText =
+                data.nama.charAt(0).toUpperCase();
 
-    // Update avatar huruf
-    document.querySelector(".avatar").innerText =
-        data.nama.charAt(0).toUpperCase();
+            resetPasswordView();
         } else {
             showToast(data.message || "Gagal menyimpan perubahan");
         }
     })
-    .catch(err => {
+    .catch(() => {
         isSaving = false;
-        console.error(err);
         showToast("Terjadi kesalahan");
     });
 };
 
-// TOAST
+/* =======================
+   UTIL
+   ======================= */
 function showToast(message) {
     const toast = document.getElementById("toast");
     toast.innerText = message;
     toast.classList.add("show");
-
-    setTimeout(() => {
-        toast.classList.remove("show");
-    }, 3000);
+    setTimeout(() => toast.classList.remove("show"), 3000);
 }
+
 function validatePassword(pw) {
-    const rules = {
+    return {
         length: pw.length >= 8,
         upper: /[A-Z]/.test(pw),
         lower: /[a-z]/.test(pw),
         number: /[0-9]/.test(pw),
         symbol: /[@$!%*#?&]/.test(pw)
     };
-
-    return rules;
 }
 </script>
 

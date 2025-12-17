@@ -89,7 +89,7 @@
 .topic-info h4 {
     margin: 0 0 10px 0;
     font-size: 1.1rem;
-    color: #a30202;
+    color: #8B0000;
 }
 
 .topic-info h4 a {
@@ -369,7 +369,7 @@ footer {
   margin-bottom: 12px;
 }
 .popup-login p {
-  color: #555;
+  color: #434343;
   font-size: 15px;
   line-height: 1.5;
   margin-bottom: 25px;
@@ -394,9 +394,9 @@ footer {
   transform: scale(1.05);
 }
 .popup-btn-cancel {
-  background: #e0e0e0;
+  background: #cacaca;
   border: none;
-  color: #333;
+  color: #1f1f1f;
   padding: 10px 26px;
   border-radius: 10px;
   cursor: pointer;
@@ -405,7 +405,7 @@ footer {
   transition: all 0.3s ease;
 }
 .popup-btn-cancel:hover {
-  background: #cfcfcf;
+  background: #bbbbbb;
   transform: scale(1.05);
 }
 

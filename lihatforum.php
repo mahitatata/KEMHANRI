@@ -35,32 +35,45 @@ if ($res->num_rows == 0) {
 }
 
 $forum = $res->fetch_assoc();
+$forumPenulis = $forum['penulis_nama'] ?? '';
 
 // ========== INSERT KOMENTAR / BALASAN ==========
 // Support both normal POST (redirect) and AJAX POST (respond with success/error)
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $nama = $_SESSION['nama'] ?? 'Anonim';
-    $isi = trim($_POST['isi'] ?? '');
-    // accept 'balasan' or 'parent_id' from different forms
-    $balasan = null;
-    if (isset($_POST['balasan'])) $balasan = intval($_POST['balasan']);
-    if (isset($_POST['parent_id'])) $balasan = intval($_POST['parent_id']);
 
-    if ($isi !== "") {
-        $stmtIns = $conn->prepare("
-            INSERT INTO komentar_forum (forum_id, nama, isi_text, balasan, tanggal)
-            VALUES (?, ?, ?, ?, NOW())
-        ");
-        // if balasan is null, set to 0
-        $bVal = intval($balasan);
-        $stmtIns->bind_param("issi", $forum_id, $nama, $isi, $bVal);
-        $ok = $stmtIns->execute();
-    } else {
-        $ok = false;
+    // ===== KUNCI KOMENTAR: HARUS LOGIN =====
+    if (!isset($_SESSION['email'])) {
+
+        // jika AJAX
+        if (
+            isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+        ) {
+            echo "not_logged_in";
+            exit;
+        }
+
+        // jika POST biasa
+        header("Location: login.php");
+        exit;
     }
+
+    // ===== USER PASTI LOGIN =====
+    $nama = $_SESSION['nama'];
+    $isi  = trim($_POST['isi'] ?? '');
+    
 
     // Jika request via AJAX, kirim plain text, jangan redirect
     $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+    $balasan = intval($_POST['balasan'] ?? 0);
+
+$stmt = $conn->prepare("
+    INSERT INTO komentar_forum (forum_id, nama, isi_text, balasan, tanggal)
+    VALUES (?, ?, ?, ?, NOW())
+");
+$stmt->bind_param("issi", $forum_id, $nama, $isi, $balasan);
+
+$ok = $stmt->execute();
     if ($isAjax) {
         echo $ok ? "success" : "error";
         exit;
@@ -79,7 +92,7 @@ $allKomentar = $ambil->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // Recursive renderer (YouTube-like / komentar.php style)
 function tampilkanKomentar($data, $parent = 0) {
-    global $sessionNama, $sessionRole; // ambil dari session (di awal file)
+    global $sessionNama, $sessionRole, $forumPenulis;
 
     foreach ($data as $row) {
         $parentField = intval($row['balasan']);
@@ -91,14 +104,22 @@ function tampilkanKomentar($data, $parent = 0) {
             // cek apakah komentar ini milik user yang login
             $isOwnComment = ($sessionNama && $sessionNama === $row['nama']);
 
+            // cek apakah komentar ini dari penulis forum
+            $isForumAuthor = ($forumPenulis && $row['nama'] === $forumPenulis);
+
             echo "<div class='komentar-item ".($parent ? 'nested' : '')."' data-id='{$id}'>";
 
-            echo "  <div class='meta-line'>";
-            echo "    <strong>".htmlspecialchars($row['nama'])."</strong>";
-            echo "    <span class='waktu'>{$tanggal}</span>";
-            echo "  </div>";
+            echo "<div class='meta-line'>";
+            echo "<strong>".htmlspecialchars($row['nama'])."</strong>";
 
-            // tampilkan info 'membalas'
+            // BADGE PENULIS
+            if ($isForumAuthor) {
+                echo "<span class='badge-penulis'>Penulis</span>";
+            }
+
+            echo "<span class='waktu'>{$tanggal}</span>";
+            echo "</div>";
+
             if (!empty($row['balasan']) && $row['balasan'] != 0) {
                 $parentName = '';
                 foreach ($data as $p) {
@@ -112,9 +133,8 @@ function tampilkanKomentar($data, $parent = 0) {
                 }
             }
 
-            echo "  <p>".nl2br(htmlspecialchars($row['isi_text']))."</p>";
+            echo "<p>".nl2br(htmlspecialchars($row['isi_text']))."</p>";
 
-            // cek apakah punya balasan
             $hasChildren = false;
             foreach ($data as $ch) { 
                 if (intval($ch['balasan']) === $id) { 
@@ -123,39 +143,41 @@ function tampilkanKomentar($data, $parent = 0) {
                 } 
             }
 
-            echo "  <div class='actions'>";
+            echo "<div class='actions'>";
 
-echo "<button class='reply-btn' data-parent='{$id}'>Balas</button>";
+            if ($sessionNama) {
+                echo "<button class='reply-btn' data-parent='{$id}'>Balas</button>";
+            }
 
-if ($hasChildren) {
-    echo "<button class='toggle-replies' data-id='{$id}'>Tampilkan Balasan</button>";
-}
+            if ($hasChildren) {
+                echo "<button class='toggle-replies' data-id='{$id}'>Tampilkan Balasan</button>";
+            }
 
-if ($sessionRole === 'admin' || $isOwnComment) {
-    echo '<button class="delete-btn" data-id="'.$id.'" title="Hapus komentar">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="3 6 5 6 21 6"></polyline>
-            <path d="M19 6l-1 14H6L5 6"></path>
-            <path d="M10 11v6"></path>
-            <path d="M14 11v6"></path>
-            <path d="M9 6V4h6v2"></path>
-        </svg>
-      </button>';
-}
+            if ($sessionRole === 'admin' || $isOwnComment) {
+                echo '<button class="delete-btn" data-id="'.$id.'" title="Hapus komentar">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6l-1 14H6L5 6"></path>
+                        <path d="M10 11v6"></path>
+                        <path d="M14 11v6"></path>
+                        <path d="M9 6V4h6v2"></path>
+                    </svg>
+                  </button>';
+            }
 
-echo "</div>";
+            echo "</div>";
 
-            // tempat anak (hidden dulu)
             echo "<div class='reply-container' data-parent='{$id}' style='display:none;'>";
-            tampilkanKomentar($data, $id);  // recurse
+            tampilkanKomentar($data, $id);
             echo "</div>";
 
             echo "</div>";
         }
     }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -167,7 +189,7 @@ echo "</div>";
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     /* --- GENERAL --- */
-    body { font-family: Inter, system-ui, Arial, sans-serif; background:#f5f6fa; margin:0; color:#333; }
+    body { font-family: Inter, Arial, sans-serif; background:#f5f6fa; margin:0; color:#333; }
     header { background:#8B0000; color:#fff; padding:16px 28px; font-weight:700; }
     .container { max-width:860px; margin:40px auto; background:#fff; border-radius:12px; padding:32px; box-shadow:0 6px 18px rgba(0,0,0,0.08); }
 
@@ -203,6 +225,12 @@ echo "</div>";
     .komentar-form .btns { margin-top:10px; display:flex; gap:8px; align-items:center; }
     .komentar-form button.primary { background:#a30202; color:#fff; border:none; padding:10px 16px; border-radius:8px; font-weight:700; cursor:pointer; }
     .komentar-form button.cancel { background:#ccc; color:#333; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; }
+    .komentar-form textarea:focus,
+    .small-reply-form textarea:focus {
+        outline: none;              /* HILANGKAN garis hitam */
+        border-color: #a30202;      /* warna merah konsisten */
+        box-shadow: 0 0 0 2px rgba(163, 2, 2, 0.2);
+    }
 
     /* reply small form style (same as komentar.php) */
     .small-reply-form textarea { width:100%; padding:10px; border-radius:6px; border:1px solid #ddd; min-height:70px; resize:vertical; }
@@ -214,54 +242,71 @@ echo "</div>";
       .komentar-item.nested { margin-left:14px; padding-left:8px; }
     }
     /* === POPUP KONFIRMASI HAPUS (BARU | FIX) === */
-.delete-popup {
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.5);
-  justify-content:center;
-  align-items:center;
-  z-index:99999;
+.popup-login {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(3px);
 }
-
-.delete-popup-content {
-  background:#fff;
-  padding:24px;
-  border-radius:10px;
-  max-width:350px;
-  width:90%;
-  text-align:center;
-  box-shadow:0 4px 20px rgba(0,0,0,0.2);
+.popup-login .popup-content {
+  background: white;
+  padding: 40px 30px;
+  border-radius: 12px;
+  width: 340px;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.25s ease;
 }
-
-.delete-popup-content h2 {
-  margin-top:0;
-  color:#a30202;
+.popup-login h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 12px;
 }
-
+.popup-login p {
+  color: #434343;
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 25px;
+}
 .popup-buttons {
-  display:flex;
-  justify-content:center;
-  gap:12px;
-  margin-top:18px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
 }
-
 .popup-btn-login {
-  background:#a30202;
-  color:#fff;
-  border:none;
-  padding:10px 16px;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:700;
+  background: #a30202;
+  color: white;
+  text-decoration: none;
+  padding: 10px 26px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  transition: all 0.3s ease;
 }
-
+.popup-btn-login:hover {
+  background: #8b0202;
+  transform: scale(1.05);
+}
 .popup-btn-cancel {
-  background:#ccc;
-  border:none;
-  padding:10px 16px;
-  border-radius:8px;
-  cursor:pointer;
+  background: #cacaca;
+  border: none;
+  color: #1f1f1f;
+  padding: 10px 26px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+.popup-btn-cancel:hover {
+  background: #bbbbbb;
+  transform: scale(1.05);
 }
 
  /* delete button komentar */
@@ -290,6 +335,18 @@ echo "</div>";
     background: #a30202;
     color: #fff;
     transform: scale(1.2);
+}
+
+
+.badge-penulis {
+    background: #a30202;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-left: 6px;
+    line-height: 1;
 }
 
 /* === KOMENTAR STYLE SAMA PERSIS SEPERTI komentar.php === */
@@ -432,30 +489,34 @@ echo "</div>";
 </div>
 
 <!-- popup login (same simple modal) -->
-<div id="loginPopup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:9999;">
-  <div style="background:#fff;padding:28px;border-radius:12px;max-width:360px;margin:auto;text-align:center;">
-    <h3>Silakan login</h3>
-    <p>Anda harus login untuk berkomentar.</p>
-    <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;">
-      <a href="login.php" style="background:#a30202;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:700;">Login</a>
-      <button onclick="closeLoginPopup()" style="background:#ddd;padding:10px 16px;border-radius:8px;border:none;cursor:pointer;">Batal</button>
+<!-- POPUP LOGIN -->
+<div class="popup-login" id="loginPopup">
+  <div class="popup-content">
+    <h2>Anda belum login</h2>
+    <p>Silakan login terlebih dahulu untuk membuat/melihat topik.</p>
+    <div class="popup-buttons">
+      <button class="popup-btn-cancel" onclick="closeLoginPopup()">Batal</button>
+      <a href="login.php" class="popup-btn-login">Login</a>
     </div>
   </div>
 </div>
 
 <!-- POPUP KONFIRMASI HAPUS -->
-<div class="delete-popup" id="deletePopup">
-  <div class="delete-popup-content">
+<div class="popup-login" id="deletePopup">
+  <div class="popup-content">
     <h2>Konfirmasi Hapus</h2>
     <p>Apakah kamu yakin ingin menghapus komentar ini?</p>
     <div class="popup-buttons">
-      <button class="popup-btn-login" id="confirmDeleteBtn">Hapus</button>
       <button class="popup-btn-cancel" id="cancelDeleteBtn">Batal</button>
+      <button class="popup-btn-login" id="confirmDeleteBtn">Hapus</button>
     </div>
   </div>
 </div>
 
 <script>
+
+const isLoggedIn = <?= isset($_SESSION['email']) ? 'true' : 'false' ?>;
+
 /* helper popup */
 function showLoginPopup(){ document.getElementById('loginPopup').style.display='flex'; }
 function closeLoginPopup(){ document.getElementById('loginPopup').style.display='none'; }
@@ -480,9 +541,13 @@ document.getElementById('kirimUtama')?.addEventListener('click', async function(
   const text = await resp.text();
   if (text === 'success') {
     location.reload();
-  } else {
+} 
+else if (text === 'not_logged_in') {
+    showLoginPopup();
+} 
+else {
     alert('Gagal mengirim komentar.');
-  }
+}
 });
 
 // Tombol Hapus Komentar
@@ -524,6 +589,15 @@ document.getElementById("confirmDeleteBtn")?.addEventListener("click", async () 
 document.addEventListener("click", function(e) {
     
     if (e.target.classList.contains("reply-btn")) {
+
+    // === BLOK USER BELUM LOGIN ===
+    if (!isLoggedIn) {
+        showLoginPopup();
+        return;
+    }
+
+    // lanjutkan logic balas
+
 
         // Hapus form balasan lama
         const old = document.getElementById("smallReplyForm");

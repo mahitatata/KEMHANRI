@@ -155,22 +155,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.remove("popup-active");
   });
 
-  document.querySelectorAll(".topic-item").forEach(item => {
-  item.addEventListener("click", function(e) {
-    const loggedIn = <?= isset($_SESSION['email']) ? 'true' : 'false' ?>;
-
-    if (!loggedIn) {
-      e.preventDefault();
-      showLoginPopup();
-      return;
-    }
-
-    const link = item.querySelector("a");
-    if (link) {
-      window.location.href = link.href;
-    }
-  });
-});
 
   btnBuat.addEventListener("click", function(e) {
     const loggedIn = <?= isset($_SESSION['email']) ? 'true' : 'false' ?>;
@@ -180,6 +164,23 @@ document.addEventListener("DOMContentLoaded", () => {
       showLoginPopup();
     } 
     // kalau sudah login → biarkan lanjut ke madeforum.php
+  });
+});
+
+document.querySelectorAll(".topic-item").forEach(item => {
+  item.addEventListener("click", function (e) {
+
+    // Jika yang diklik adalah link atau tombol → jangan redirect ulang
+    if (
+      e.target.tagName === "A" ||
+      e.target.tagName === "BUTTON" ||
+      e.target.closest("button")
+    ) {
+      return;
+    }
+
+    const forumId = this.dataset.id;
+    window.location.href = "lihatforum.php?id=" + forumId;
   });
 });
 

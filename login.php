@@ -343,7 +343,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
 
             <div class="form-actions">
-                <button type="button" class="btn-action" onclick="window.location.href='index.php'">Kembali</button>
+                <button type="button" class="btn-action" onclick="window.location.href='javascript:history.back()'">Kembali</button>
                 <button type="submit" class="btn-action">Masuk</button>
             </div>
 
