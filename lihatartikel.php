@@ -157,11 +157,11 @@ h1 {
 <header>📄 Lihat Artikel</header>
 <div class="container">
 <div class="judul-bar">
-    <a href="<?= $backUrl ?>" class="btn-back-shopee">
-        <svg class="arrow-shopee" viewBox="0 0 24 24">
-            <path d="M15 6l-6 6 6 6" />
-        </svg>
-    </a>
+   <a href="javascript:history.back()" class="btn-back-shopee">
+    <svg class="arrow-shopee" viewBox="0 0 24 24">
+        <path d="M15 6l-6 6 6 6" />
+    </svg>
+</a>
 </div>
 
   <h1><?= htmlspecialchars($artikel['judul']) ?></h1>

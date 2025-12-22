@@ -446,11 +446,11 @@ if (isset($_GET['hapus'])) {
 
   <div class="container">
 
-    <a href="<?= $backUrl ?>" class="btn-back-shopee">
-      <svg class="arrow-shopee" viewBox="0 0 24 24">
+    <a href="javascript:history.back()" class="btn-back-shopee">
+    <svg class="arrow-shopee" viewBox="0 0 24 24">
         <path d="M15 6l-6 6 6 6" />
-      </svg>
-    </a>
+    </svg>
+  </a>
 
     <h2>Daftar Artikel Anda</h2>
 

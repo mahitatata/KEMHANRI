@@ -461,8 +461,8 @@ style="background:#a30202;color:white;border:none;padding:0.8rem 1.5rem;border-r
     <h2>Anda belum login</h2>
     <p>Silakan login terlebih dahulu untuk membuka file PDF ini.</p>
     <div class="popup-buttons">
-      <a href="login.php" class="popup-btn-login">Login</a>
       <button class="popup-btn-cancel" id="cancelPdfPopup">Batal</button>
+            <a href="login.php" class="popup-btn-login">Login</a>
     </div>
   </div>
 </div>

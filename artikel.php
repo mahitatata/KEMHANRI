@@ -197,7 +197,6 @@ $isLoggedIn = isset($_SESSION['email']);
     <?php endif; ?>
 </section>
 </main>
-</main>
 
 <footer>
   <div class="footer-container">

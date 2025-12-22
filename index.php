@@ -43,7 +43,12 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 include "koneksi.php";
 
+$keyword = trim($_GET['search'] ?? '');
+
 $isLoggedIn = isset($_SESSION['email']); // ✅ deteksi login
+
+$search = trim($_GET['search'] ?? '');
+$isSearch = $search !== '';
 
 // Query artikel + jumlah komentar + penulis
 $sql = "
@@ -59,16 +64,25 @@ SELECT
 FROM artikel a
 LEFT JOIN komentar k ON k.artikel_id = a.id
 LEFT JOIN regsitrasi p ON a.pegawai_id = p.id
-WHERE a.status = 'publish' 
+WHERE a.status = 'publish'
   AND a.tipe = 'publik'
-  AND a.arsip = 0   -- <== WAJIB
-GROUP BY a.id
-ORDER BY 
-    CASE WHEN COUNT(k.id) = 0 THEN 0 ELSE 1 END DESC, -- prioritaskan artikel dengan komentar
-    COUNT(k.id) DESC,                                -- komentar terbanyak
-    a.created_at DESC                                -- fallback ke terbaru
-LIMIT 6
+  AND a.arsip = 0
 ";
+
+if ($isSearch) {
+    $searchEscaped = $conn->real_escape_string($search);
+    $sql .= " AND (a.judul LIKE '%$searchEscaped%' 
+              OR a.isi_artikel LIKE '%$searchEscaped%')";
+}
+
+$sql .= "
+GROUP BY a.id
+ORDER BY a.created_at DESC
+";
+
+if (!$isSearch) {
+    $sql .= " LIMIT 6";
+}
 
 $result = $conn->query($sql);
 
@@ -84,8 +98,16 @@ if ($result && $result->num_rows > 0):
     <?php if (!empty($row['gambar'])): ?>
       <img src="uploads/<?= htmlspecialchars($row['gambar']); ?>" alt="<?= htmlspecialchars($row['judul']); ?>" class="article-image">
     <?php else: ?>
-      <img src="default.jpg" alt="Tidak ada gambar" class="article-image">
+    <?php if (!empty($keyword)): ?>
+        <div class="no-article">
+            Tidak ada artikel yang cocok dengan pencarian.
+        </div>
+    <?php else: ?>
+        <div class="no-article">
+            Belum ada artikel tersedia.
+        </div>
     <?php endif; ?>
+<?php endif; ?>
 
     <!-- Judul -->
     <h3 class="article-title"><?= htmlspecialchars($row['judul']); ?></h3>
@@ -101,8 +123,11 @@ if ($result && $result->num_rows > 0):
     <!-- Metadata -->
     <div class="article-meta">
       <div class="article-tags">
-        <span class="tag">#<?= htmlspecialchars($row['kategori']); ?></span>
-      </div>
+          <a href="artikel.php?kategori=<?= urlencode($row['kategori']); ?>" 
+            class="tag">
+            #<?= htmlspecialchars($row['kategori']); ?>
+          </a>
+        </div>
       <div class="article-comments">
         <i class="fas fa-comment"></i> <span><?= $row['total_komentar']; ?></span>
       </div>
@@ -112,7 +137,11 @@ if ($result && $result->num_rows > 0):
 <?php 
   endwhile;
 else:
-  echo "<p style='text-align:center; color:#666;'>Belum ada artikel tersedia.</p>";
+?>
+  <div class="no-article">
+    Tidak ada artikel yang cocok dengan pencarian.
+  </div>
+<?php
 endif;
 
 // --- SEARCH MODE ---
@@ -242,20 +271,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // === Fungsi Tampilkan Popup Login ===
   function showLoginPopup(message = null) {
-    const title = popup.querySelector("h2");
-    const text  = popup.querySelector("p");
+  const title = popup.querySelector("h2");
+  const text  = popup.querySelector("p");
+  const loginBtn = popup.querySelector(".popup-btn-login");
+  const cancelBtn = popup.querySelector(".popup-btn-cancel");
 
-    if (message) {
-        title.textContent = "Pemberitahuan";
-        text.textContent  = message;
-    } else {
-        title.textContent = "Anda belum login";
-        text.textContent  = "Silakan login terlebih dahulu untuk membaca artikel ini.";
-    }
+  if (message) {
+      // MODE PENCARIAN
+      title.textContent = "Pemberitahuan";
+      text.textContent  = message;
+      loginBtn.style.display = "none";
+      cancelBtn.textContent = "Coba Lagi"; // ✅ ganti teks tombol
 
-    popup.style.display = "flex";
-    document.body.classList.add("popup-active");
+      cancelBtn.style.background = "#a30202";
+      cancelBtn.style.color = "#fff";
+  } else {
+      // MODE LOGIN (ASLI)
+      title.textContent = "Anda belum login";
+      text.textContent  = "Silakan login terlebih dahulu untuk membaca artikel ini.";
+      loginBtn.style.display = "inline-block";
+      cancelBtn.textContent = "Batal"; // ✅ kembali normal
+
+      cancelBtn.style.background = "";
+      cancelBtn.style.color = "";
   }
+
+  popup.style.display = "flex";
+  document.body.classList.add("popup-active");
+}
 
   // === Fungsi Tutup Popup ===
   function closePopup() {
@@ -277,30 +320,12 @@ document.querySelectorAll('.article-card').forEach(card => {
   document.querySelector(".search-form").addEventListener("submit", function(e) {
     e.preventDefault();
 
-    let q = document.querySelector("input[name='search']").value.trim().toLowerCase();
-    if (q === "") return;
+    const q = document.querySelector("input[name='search']").value.trim();
+    if (!q) return;
 
-    // keyword spesial
-    if (q === "artikel") {
-        window.location.href = "artikel.php";
-        return;
-    }
-    if (q === "forum") {
-        window.location.href = "forum.php";
-        return;
-    }
-
-    // Search DB melalui redirect.php
-    fetch("redirect.php?q=" + encodeURIComponent(q))
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === "found") {
-            window.location.href = data.redirect;
-        } else {
-            showLoginPopup("Tidak ditemukan. Coba kata kunci lain.");
-        }
-      });
-  });
+    // langsung ke halaman artikel
+    window.location.href = "artikel.php?search=" + encodeURIComponent(q);
+});
 
 });
 </script>

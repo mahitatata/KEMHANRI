@@ -1355,6 +1355,29 @@ document.getElementById('imageModal').addEventListener('click', function(e) {
       }
     });
   });
+
+// === SEARCH BAR ===
+document.querySelector(".search-input-container").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    let q = document.querySelector("input[name='search']").value.trim().toLowerCase();
+    if (q === "") return;
+
+    if (q === "forum") {
+        window.location.href = "forum.php";
+        return;
+    }
+
+    fetch("redirect.php?q=" + encodeURIComponent(q))
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "found") {
+            window.location.href = data.redirect;
+        } else {
+            window.location.href = "pegawai.php?search=" + encodeURIComponent(q);
+        }
+      });
+});
 </script>
 </body>
 </html>

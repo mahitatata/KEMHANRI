@@ -2,6 +2,8 @@
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
+
+$currentPage = basename($_SERVER['PHP_SELF']);
 ?>
  <link rel="stylesheet" href="header.css">
 
@@ -10,58 +12,65 @@ if (session_status() == PHP_SESSION_NONE) {
     <img src="logo kemhan 1.png" alt="banner" class="banner-img">
     <div class="text-left">
     <h2>HanZone</h2>
-    <p class="tagline">Sistem Manajemen Pengetahuan</p>
+    <p class="tagline">Zona Pengetahuan Pertahanan</p>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   </div>
   </div>
 
   <div class="hamburger" id="hamburger">&#9776;</div>
 
-  <nav class="nav-right" id="navMenu">
+<nav class="nav-right" id="navMenu">
   <div class="close-btn" id="closeBtn">&times;</div>
 
   <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'pegawai'): ?>
-      <a href="index.php">Beranda</a>
-      <a href="pegawai.php">Artikel</a>
-      <a href="forum.php">Forum</a>
-      <a href="faq.php">FAQs</a>
+
+      <a href="index.php"   class="<?= $currentPage === 'index.php' ? 'active' : '' ?>">Beranda</a>
+      <a href="pegawai.php" class="<?= $currentPage === 'pegawai.php' ? 'active' : '' ?>">Artikel</a>
+      <a href="forum.php"   class="<?= $currentPage === 'forum.php' ? 'active' : '' ?>">Forum</a>
+      <a href="faq.php"     class="<?= $currentPage === 'faq.php' ? 'active' : '' ?>">FAQs</a>
 
   <?php elseif (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-      <a href="index.php">Beranda</a>
-      <a href="artikel.php">Artikel</a>
-      <a href="forum.php">Forum</a>
-      <a href="faq.php">FAQs</a>
 
-  <?php else: ?> <!-- user biasa -->
-      <a href="index.php">Beranda</a>
-      <a href="artikel.php">Artikel</a>
-      <a href="forum.php">Forum</a>
-      <a href="faq.php">FAQs</a>
+      <a href="index.php"   class="<?= $currentPage === 'index.php' ? 'active' : '' ?>">Beranda</a>
+      <a href="artikel.php" class="<?= $currentPage === 'artikel.php' ? 'active' : '' ?>">Artikel</a>
+      <a href="forum.php"   class="<?= $currentPage === 'forum.php' ? 'active' : '' ?>">Forum</a>
+      <a href="faq.php"     class="<?= $currentPage === 'faq.php' ? 'active' : '' ?>">FAQs</a>
+
+  <?php else: ?> <!-- USER BIASA / BELUM LOGIN -->
+
+      <a href="index.php"   class="<?= $currentPage === 'index.php' ? 'active' : '' ?>">Beranda</a>
+      <a href="artikel.php" class="<?= $currentPage === 'artikel.php' ? 'active' : '' ?>">Artikel</a>
+      <a href="forum.php"   class="<?= $currentPage === 'forum.php' ? 'active' : '' ?>">Forum</a>
+      <a href="faq.php"     class="<?= $currentPage === 'faq.php' ? 'active' : '' ?>">FAQs</a>
+
   <?php endif; ?>
 
-  <?php if(isset($_SESSION['nama'])): ?>
+  <!-- LOGIN / PROFILE -->
+  <?php if (isset($_SESSION['nama'])): ?>
     <div class="dropdown">
-      <button class="btn-login">
-        <i class="fas fa-user"></i> <?= htmlspecialchars($_SESSION['nama']); ?>
+      <button class="btn-login btn-user">
+        <i class="fas fa-user-circle"></i>
+        <span class="username"><?= htmlspecialchars($_SESSION['nama']); ?></span>
       </button>
 
       <div class="dropdown-content">
-          <a href="profile.php">Profile</a>
+        <a href="profile.php">Profile</a>
 
-          <?php if ($_SESSION['role'] === 'pegawai'): ?>
-            <a href="dashboardpegawai.php">Dashboard Pegawai</a>
-          <?php elseif ($_SESSION['role'] === 'admin'): ?>
-            <a href="dashboard.php">Dashboard Admin</a>
-          <?php endif; ?>
+        <?php if ($_SESSION['role'] === 'pegawai'): ?>
+          <a href="dashboardpegawai.php">Dashboard Pegawai</a>
+        <?php elseif ($_SESSION['role'] === 'admin'): ?>
+          <a href="dashboard.php">Dashboard Admin</a>
+        <?php endif; ?>
 
-          <a href="logout.php">Keluar</a>
+        <a href="logout.php">Keluar</a>
       </div>
     </div>
-<?php else: ?>
+  <?php else: ?>
     <a class="btn-login" href="login.php">Masuk</a>
     <a class="btn-login" href="register.php">Daftar</a>
-<?php endif; ?>
+  <?php endif; ?>
+</nav>
 
-  </nav>
 </header>
 <script src="header.js"></script>
 <script>

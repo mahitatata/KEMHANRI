@@ -102,6 +102,22 @@ nav a:hover {
     margin-left: 10px;
 }
 
+/* === USER ICON BUTTON === */
+.btn-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-user i {
+  font-size: 20px;
+}
+
+/* Nama user tidak pecah di mobile */
+.btn-user .username {
+  white-space: nowrap;
+}
+
 /* Hamburger menu (hidden on desktop) */
 .hamburger {
   display: none;
@@ -129,6 +145,12 @@ nav a:hover {
 
 .nav-right.active .close-btn {
   display: block;
+}
+
+.nav-right a.active {
+  background: rgba(255,255,255,0.2);
+  padding: 8px 12px;
+  border-radius: 30px;
 }
 
 /* Hamburger menu (hidden on desktop) */
@@ -366,6 +388,10 @@ nav a:hover {
 
   .nav-right a:hover {
     opacity: 0.85;
+  }
+
+  .nav-right a.active {
+    background: rgba(255,255,255,0.25);
   }
 
   /* Tombol Masuk */

@@ -1,5 +1,7 @@
 <?php
 session_start();
+$currentPage = basename($_SERVER['PHP_SELF']);
+
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 include "koneksi.php";
@@ -464,11 +466,33 @@ if (isset($_GET['action']) && $_GET['action'] == 'fetch_pegawai') {
   color: #fff;
 }
 
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.brand-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
 .brand img {
   width: 36px;
   height: 36px;
   margin-right: 12px;
   border-radius: 6px;
+}
+
+/* Tagline */
+.tagline {
+  font-style: italic;
+  letter-spacing: 0.3px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 2px 0 0;
 }
 
 /* Sidebar Nav */
@@ -492,8 +516,21 @@ if (isset($_GET['action']) && $_GET['action'] == 'fetch_pegawai') {
 
 .nav-item:hover,
 .nav-item.active {
-  background: rgba(255, 255, 255, 0.15);
-  padding-left: 20px; /* efek geser halus */
+  background: rgba(255, 255, 255, 0.25);
+  padding-left: 20px;
+  font-weight: 700;
+  position: relative;
+}
+
+.nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  background: #ffc107;
+  border-radius: 0 4px 4px 0;
 }
 
 .nav-item .chev {
@@ -917,20 +954,29 @@ tbody tr:hover {
   <aside class="sidebar" aria-label="sidebar">
     <!-- Logo + teks HanZone -->
     <div class="brand">
-      <img src="logo kemhan 1.png" alt="Logo Kemhan">
-      HanZone
-    </div>
-
-    <nav>
-      <div class="nav-item">Dashboard</div>
-<div class="nav-item has-dropdown" id="manajemenKonten">Manajemen Konten <span class="chev">▾</span>
-  <div class="dropdown-menu">
-    <a class="dropdown-item" href="artikel.php">Artikel</a>
-    <a class="dropdown-item" href="forum.php">Forum</a>
-    <a class="dropdown-item" href="faq.php">FAQ</a>
+  <img src="logo kemhan 1.png" alt="Logo Kemhan">
+  <div class="brand-text">
+    <span class="brand-title">HanZone</span>
+    <p class="tagline">Zona Pengetahuan Pertahanan</p>
   </div>
 </div>
-    </nav>
+
+   <nav>
+  <div class="nav-item <?= ($currentPage == 'dashboard.php') ? 'active' : '' ?>">
+    Dashboard
+  </div>
+
+  <div class="nav-item has-dropdown <?= in_array($currentPage, ['artikel.php','forum.php','faq.php']) ? 'active' : '' ?>" id="manajemenKonten">
+    Manajemen Konten <span class="chev">▾</span>
+
+    <div class="dropdown-menu <?= in_array($currentPage, ['artikel.php','forum.php','faq.php']) ? 'active' : '' ?>">
+      <a class="dropdown-item" href="artikel.php">Artikel</a>
+      <a class="dropdown-item" href="forum.php">Forum</a>
+      <a class="dropdown-item" href="faq.php">FAQ</a>
+    </div>
+  </div>
+</nav>
+
   </aside>
 
   <main class="main">
@@ -1056,14 +1102,6 @@ tbody tr:hover {
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-
-  // === 1. Highlight nav-item yang diklik ===
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', () => {
-      document.querySelectorAll('.nav-item').forEach(x => x.style.opacity = 0.9);
-      item.style.opacity = 1;
-    });
-  });
 
   // === 2. Auto refresh tabel pegawai tiap 60 detik ===
   setInterval(() => {

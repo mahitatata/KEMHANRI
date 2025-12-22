@@ -82,39 +82,55 @@ faqItems.forEach(item => {
 
   cancelBtn?.addEventListener("click", closePopup);
 
-
-
-  /* ============================
-     CARD KLIK → BUKA ARTIKEL
-  ============================ */
-  document.querySelectorAll('.article-card').forEach(card => {
-    card.addEventListener('click', function() {
-      const id = this.dataset.id;
-      window.location.href = `komentar.php?id=${id}&from=beranda`;
-    });
-  });
-
-
-
-  /* ============================
-     SEARCH BAR
-  ============================ */
-  const searchForm = document.querySelector(".search-form");
-
-  searchForm?.addEventListener("submit", function(e) {
+// === SEARCH BAR ===
+  document.querySelector(".search-form").addEventListener("submit", function(e) {
     e.preventDefault();
-    const q = document.querySelector("input[name='search']").value.trim().toLowerCase();
+
+    let q = document.querySelector("input[name='search']").value.trim().toLowerCase();
     if (q === "") return;
 
-    if (q === "artikel") return (window.location.href = "artikel.php");
-    if (q === "forum") return (window.location.href = "forum.php");
+    // keyword spesial
+    if (q === "artikel") {
+        window.location.href = "artikel.php";
+        return;
+    }
+    if (q === "forum") {
+        window.location.href = "forum.php";
+        return;
+    }
+
+    // Search DB melalui redirect.php
+    fetch("redirect.php?q=" + encodeURIComponent(q))
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "found") {
+            window.location.href = data.redirect;
+        } else {
+            showLoginPopup("Tidak ditemukan. Coba kata kunci lain.");
+        }
+      });
+  });
+
+});
+
+document.querySelector(".search-input-container").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    let q = document.querySelector("input[name='search']").value.trim().toLowerCase();
+    if (q === "") return;
+
+    if (q === "forum") {
+        window.location.href = "forum.php";
+        return;
+    }
 
     fetch("redirect.php?q=" + encodeURIComponent(q))
       .then(res => res.json())
       .then(data => {
-        if (data.status === "found") window.location.href = data.redirect;
-        else showLoginPopup("Tidak ditemukan. Coba kata kunci lain.");
+        if (data.status === "found") {
+            window.location.href = data.redirect;
+        } else {
+            window.location.href = "artikel.php?search=" + encodeURIComponent(q);
+        }
       });
-  });
-
 });
