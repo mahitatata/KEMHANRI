@@ -215,7 +215,7 @@ function tampilkanKomentar($data, $parent = 0) {
 
     /* komentar main form (top) */
     .komentar-form { margin-top:18px; }
-    .komentar-form textarea { width:100%; padding:12px; border-radius:8px; border:1px solid #901616ff; resize:vertical; min-height:90px; font-family:inherit; }
+    .komentar-form textarea { width:100%; padding:12px; border-radius:8px; border:1px solid #901616ff; resize:vertical; min-height:90px;}
     .komentar-form .btns { margin-top:10px; display:flex; gap:8px; align-items:center; }
     .komentar-form button.primary { background:#a30202; color:#fff; border:none; padding:10px 16px; border-radius:8px; font-weight:700; cursor:pointer; }
     .komentar-form button.cancel { background:#ccc; color:#333; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; }
@@ -416,10 +416,46 @@ function tampilkanKomentar($data, $parent = 0) {
     padding: 8px;
 }
 
+/* === FINAL: tombol Batal & Kirim Balasan SAMA DENGAN komentar.php === */
 .small-reply-form .btns {
-    margin-top: 8px;
     display: flex;
     gap: 10px;
+}
+
+.small-reply-form button {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s, transform 0.1s;
+}
+
+/* Kirim Balasan */
+.small-reply-form button.primary {
+    background: #a30202;
+    color: #fff;
+}
+
+.small-reply-form button.primary:hover {
+    background: #8b0202;
+}
+
+/* Batal */
+.small-reply-form button.cancel {
+    background: #ccc;
+    color: #333;
+}
+
+.small-reply-form button.cancel:hover {
+    background: #bbb;
+}
+
+/* Hilangkan outline / ring */
+.small-reply-form button:focus,
+.small-reply-form button:active {
+    outline: none;
+    box-shadow: none;
 }
 
 .small-reply-form button.primary {
@@ -627,11 +663,11 @@ document.addEventListener("click", function(e) {
         form.id = "smallReplyForm";
         form.className = "small-reply-form";
 
-        form.innerHTML = `
+                form.innerHTML = `
             <textarea id="replyText" placeholder="Tulis balasan..."></textarea>
             <div class="btns">
-                <button class="primary" id="sendReply">Kirim Balasan</button>
-                <button class="cancel" id="cancelReply">Batal</button>
+                <button type="button" class="cancel" id="cancelReply">Batal</button>
+                <button type="button" class="primary" id="sendReply">Kirim Balasan</button>
             </div>
         `;
 

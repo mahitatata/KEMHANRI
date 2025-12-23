@@ -192,6 +192,11 @@ body{font-family:'Inter',sans-serif;margin:0;background:#f9fafb;color:#333;}
 }
 .reply-btn,.toggle-replies{background:none;color:#a30202;border:none;cursor:pointer;font-size:0.75rem;font-weight:600;margin-top:5px;}
 .reply-btn:hover,.toggle-replies:hover{text-decoration:underline;}
+#replyForm button:focus,
+#replyForm button:active {
+    outline: none;
+    box-shadow: none;
+}
 
 .btn-back-shopee {
     display: flex;
@@ -626,8 +631,9 @@ document.getElementById("confirmDeleteBtn")?.addEventListener("click", async () 
       replyForm.className="komentar-form";
       replyForm.innerHTML=`
         <textarea name="isi" placeholder="Tulis balasan..." required></textarea>
-        <button type="submit">Kirim Balasan</button>
         <button type="button" id="batalReply">Batal</button>
+        <button type="submit">Kirim Balasan</button>
+
       `;
       parentComment.appendChild(replyForm);
 
