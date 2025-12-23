@@ -2,15 +2,38 @@
 include "koneksi.php";
 session_start();
 
+if (isset($_GET['ajax']) && $_GET['ajax'] === 'jumlahKomentar') {
+    $q = mysqli_query($conn, "
+        SELECT forum_id, COUNT(*) AS jumlah_balasan
+        FROM komentar_forum
+        GROUP BY forum_id
+    ");
+
+    $data = [];
+    while ($row = mysqli_fetch_assoc($q)) {
+        $data[] = $row;
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($data);
+    exit;
+}
+
 // Ambil semua forum dari DB, urutkan dari terbaru
 $query = "
-    SELECT f.id, f.judul, f.penulis_nama, f.tanggal,
-           COUNT(k.id) AS jumlah_balasan
+    SELECT 
+        f.id,
+        f.judul,
+        f.tanggal,
+        r.nama AS nama_user,
+        COUNT(k.id) AS jumlah_balasan
     FROM forum f
+    JOIN regsitrasi r ON f.user_id = r.id
     LEFT JOIN komentar_forum k ON k.forum_id = f.id
-    GROUP BY f.id
+    GROUP BY f.id, r.nama
     ORDER BY f.tanggal DESC
 ";
+
 $result = mysqli_query($conn, $query);
 
 if (!$result) {
@@ -53,7 +76,7 @@ if (!$result) {
                       <a href="lihatforum.php?id=<?= $row['id'] ?>"><?= htmlspecialchars($row['judul']) ?></a>
                     </h4>
                     <div class="topic-meta">
-                      <span>Oleh: <?= htmlspecialchars($row['penulis_nama']) ?></span>
+                      <span>Oleh: <?= htmlspecialchars($row['nama_user']) ?></span>
                       <span><?= date('d M Y, H:i', strtotime($row['tanggal'])) ?></span>
                     </div>
                   </div>
@@ -183,6 +206,25 @@ document.querySelectorAll(".topic-item").forEach(item => {
     window.location.href = "lihatforum.php?id=" + forumId;
   });
 });
+
+function updateJumlahKomentar() {
+  fetch("forum.php?ajax=jumlahKomentar")
+    .then(res => res.json())
+    .then(data => {
+      data.forEach(item => {
+        const forumItem = document.querySelector(
+          `.topic-item[data-id="${item.forum_id}"] .topic-stats span`
+        );
+        if (forumItem) {
+          forumItem.textContent = item.jumlah_balasan;
+        }
+      });
+    })
+    .catch(err => console.error("AJAX error:", err));
+}
+
+// update tiap 10 detik
+setInterval(updateJumlahKomentar, 10000);
 
 // Tombol hapus forum
 document.querySelectorAll(".btn-hapus-forum").forEach(btn => {

@@ -7,28 +7,53 @@ if (!isset($_SESSION['email'])) {
     exit;
 }
 
-$nama = $_SESSION['nama'] ?? 'Pengguna';
 $email = $_SESSION['email'];
 $pesan = '';
 
+// === AMBIL ID & NAMA USER DARI REGISTRASI (SATU KALI, AMAN) ===
+$stmtUser = $conn->prepare(
+    "SELECT ID, nama FROM regsitrasi WHERE email = ? LIMIT 1"
+);
+$stmtUser->bind_param("s", $email);
+$stmtUser->execute();
+$resultUser = $stmtUser->get_result();
+
+if ($resultUser->num_rows === 0) {
+    die("User tidak ditemukan di database.");
+}
+
+$userData = $resultUser->fetch_assoc();
+$user_id  = (int) $userData['ID'];   // untuk foreign key forum.user_id
+$nama     = $userData['nama'];       // untuk tampilan (via JOIN nanti)
+
+$stmtUser->close();
+
+// === PROSES SUBMIT FORUM ===
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $judul = trim($_POST['judul']);
-    $isi = trim($_POST['isi']);
+    $isi   = trim($_POST['isi']);
 
-    if ($judul && $isi) {
-        $stmt = $conn->prepare("INSERT INTO forum (judul, isi_text, penulis_email, penulis_nama, tanggal) VALUES (?, ?, ?, ?, NOW())");
-        $stmt->bind_param("ssss", $judul, $isi, $email, $nama);
+    if ($judul !== '' && $isi !== '') {
+        $stmt = $conn->prepare(
+            "INSERT INTO forum (judul, isi_text, penulis_email, user_id, tanggal)
+             VALUES (?, ?, ?, ?, NOW())"
+        );
+        $stmt->bind_param("sssi", $judul, $isi, $email, $user_id);
+
         if ($stmt->execute()) {
             header("Location: forum.php");
             exit;
         } else {
             $pesan = "Terjadi kesalahan saat menyimpan data.";
         }
+
+        $stmt->close();
     } else {
         $pesan = "Judul dan isi forum tidak boleh kosong.";
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>

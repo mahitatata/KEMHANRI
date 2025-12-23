@@ -1,50 +1,45 @@
 <?php
-// lihatforum.php (FINAL - komentar disamain dengan komentar.php)
+// ================== INIT ==================
 include "koneksi.php";
 session_start();
 
-// Pastikan ada ID forum
+/* ================== VALIDASI ID FORUM ================== */
 if (!isset($_GET['id'])) {
-  header("Location: forum.php");
-  exit;
+    header("Location: forum.php");
+    exit;
 }
-
 $forum_id = intval($_GET['id']);
 
-// Jika user belum login, munculkan fungsi JS (tetap lanjutkan render halaman soalnya)
-if (!isset($_SESSION['email'])) {
-    $isLoggedIn = false;
-} else {
-    $isLoggedIn = true;
-}
+/* ================== SESSION ================== */
+$isLoggedIn     = isset($_SESSION['user_id']);
+$sessionUserId = $_SESSION['user_id'] ?? null;
+$sessionRole   = $_SESSION['role'] ?? 'user';
 
-// Ambil session user (role & nama)
-// TARUH DI AWAL FILE sebelum function tampilkanKomentar:
-$sessionNama = $_SESSION['nama'] ?? null;
-$sessionRole = $_SESSION['role'] ?? 'user';
-
-// Ambil data forum
-$stmt = $conn->prepare("SELECT * FROM forum WHERE id = ?");
+/* ================== AMBIL DATA FORUM ================== */
+$stmt = $conn->prepare("
+    SELECT 
+        f.*,
+        r.nama AS nama_penulis
+    FROM forum f
+    JOIN regsitrasi r ON f.user_id = r.id
+    WHERE f.id = ?
+");
 $stmt->bind_param("i", $forum_id);
 $stmt->execute();
 $res = $stmt->get_result();
 
-if ($res->num_rows == 0) {
-  echo "<h3>Topik tidak ditemukan</h3>";
-  exit;
+if ($res->num_rows === 0) {
+    echo "<h3>Topik tidak ditemukan</h3>";
+    exit;
 }
 
 $forum = $res->fetch_assoc();
-$forumPenulis = $forum['penulis_nama'] ?? '';
+$forumPenulis = $forum['nama_penulis'];
 
-// ========== INSERT KOMENTAR / BALASAN ==========
-// Support both normal POST (redirect) and AJAX POST (respond with success/error)
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+/* ================== INSERT KOMENTAR ================== */
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    // ===== KUNCI KOMENTAR: HARUS LOGIN =====
-    if (!isset($_SESSION['email'])) {
-
-        // jika AJAX
+    if (!$isLoggedIn) {
         if (
             isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
             strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
@@ -52,132 +47,129 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo "not_logged_in";
             exit;
         }
-
-        // jika POST biasa
         header("Location: login.php");
         exit;
     }
 
-    // ===== USER PASTI LOGIN =====
-    $nama = $_SESSION['nama'];
-    $isi  = trim($_POST['isi'] ?? '');
-    
-
-    // Jika request via AJAX, kirim plain text, jangan redirect
-    $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+    $isi     = trim($_POST['isi'] ?? '');
     $balasan = intval($_POST['balasan'] ?? 0);
 
-$stmt = $conn->prepare("
-    INSERT INTO komentar_forum (forum_id, nama, isi_text, balasan, tanggal)
-    VALUES (?, ?, ?, ?, NOW())
-");
-$stmt->bind_param("issi", $forum_id, $nama, $isi, $balasan);
-
-$ok = $stmt->execute();
-    if ($isAjax) {
-        echo $ok ? "success" : "error";
-        exit;
-    } else {
-        header("Location: lihatforum.php?id=".$forum_id);
+    if ($isi === '') {
+        echo "error";
         exit;
     }
+
+    $stmt = $conn->prepare("
+        INSERT INTO komentar_forum
+        (forum_id, user_id, isi_text, balasan, tanggal)
+        VALUES (?, ?, ?, ?, NOW())
+    ");
+    $stmt->bind_param("iisi", $forum_id, $sessionUserId, $isi, $balasan);
+
+    $ok = $stmt->execute();
+
+    if (
+        isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+        strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+    ) {
+        echo $ok ? "success" : "error";
+        exit;
+    }
+
+    header("Location: lihatforum.php?id=".$forum_id);
+    exit;
 }
 
-// Ambil semua komentar (untuk fungsi recursive)
-$ambil = $conn->prepare("SELECT * FROM komentar_forum WHERE forum_id = ? ORDER BY tanggal ASC");
+/* ================== AMBIL KOMENTAR ================== */
+$ambil = $conn->prepare("
+    SELECT 
+        k.id,
+        k.forum_id,
+        k.user_id,
+        k.isi_text,
+        COALESCE(k.balasan, 0) AS balasan,
+        k.tanggal,
+        r.nama AS nama_user
+    FROM komentar_forum k
+    JOIN regsitrasi r ON k.user_id = r.id
+    WHERE k.forum_id = ?
+    ORDER BY k.tanggal ASC
+");
 $ambil->bind_param("i", $forum_id);
 $ambil->execute();
 $allKomentar = $ambil->get_result()->fetch_all(MYSQLI_ASSOC);
 
-
-// Recursive renderer (YouTube-like / komentar.php style)
+/* ================== RENDER KOMENTAR ================== */
 function tampilkanKomentar($data, $parent = 0) {
-    global $sessionNama, $sessionRole, $forumPenulis;
+    global $sessionUserId, $sessionRole, $forumPenulis;
 
     foreach ($data as $row) {
-        $parentField = intval($row['balasan']);
-        if ($parentField === intval($parent)) {
 
-            $id = intval($row['id']);
-            $tanggal = date('d M Y, H:i', strtotime($row['tanggal']));
+        if ((int)$row['balasan'] !== (int)$parent) continue;
 
-            // cek apakah komentar ini milik user yang login
-            $isOwnComment = ($sessionNama && $sessionNama === $row['nama']);
+        $id       = (int)$row['id'];
+        $tanggal = date('d M Y, H:i', strtotime($row['tanggal']));
 
-            // cek apakah komentar ini dari penulis forum
-            $isForumAuthor = ($forumPenulis && $row['nama'] === $forumPenulis);
+        $isOwnComment  = ($sessionUserId && (int)$row['user_id'] === (int)$sessionUserId);
+        $isForumAuthor = ($row['nama_user'] === $forumPenulis);
 
-            echo "<div class='komentar-item ".($parent ? 'nested' : '')."' data-id='{$id}'>";
+        echo "<div class='komentar-item ".($parent ? "nested" : "")."'>";
 
-            echo "<div class='meta-line'>";
-            echo "<strong>".htmlspecialchars($row['nama'])."</strong>";
-
-            // BADGE PENULIS
-            if ($isForumAuthor) {
-                echo "<span class='badge-penulis'>Penulis</span>";
-            }
-
-            echo "<span class='waktu'>{$tanggal}</span>";
-            echo "</div>";
-
-            if (!empty($row['balasan']) && $row['balasan'] != 0) {
-                $parentName = '';
-                foreach ($data as $p) {
-                    if ($p['id'] == $row['balasan']) { 
-                        $parentName = $p['nama']; 
-                        break; 
-                    }
-                }
-                if ($parentName !== "") {
-                    echo "<div class='reply-to'>Membalas @".htmlspecialchars($parentName)."</div>";
-                }
-            }
-
-            echo "<p>".nl2br(htmlspecialchars($row['isi_text']))."</p>";
-
-            $hasChildren = false;
-            foreach ($data as $ch) { 
-                if (intval($ch['balasan']) === $id) { 
-                    $hasChildren = true; 
-                    break; 
-                } 
-            }
-
-            echo "<div class='actions'>";
-
-            if ($sessionNama) {
-                echo "<button class='reply-btn' data-parent='{$id}'>Balas</button>";
-            }
-
-            if ($hasChildren) {
-                echo "<button class='toggle-replies' data-id='{$id}'>Tampilkan Balasan</button>";
-            }
-
-            if ($sessionRole === 'admin' || $isOwnComment) {
-                echo '<button class="delete-btn" data-id="'.$id.'" title="Hapus komentar">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2"
-                         stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6l-1 14H6L5 6"></path>
-                        <path d="M10 11v6"></path>
-                        <path d="M14 11v6"></path>
-                        <path d="M9 6V4h6v2"></path>
-                    </svg>
-                  </button>';
-            }
-
-            echo "</div>";
-
-            echo "<div class='reply-container' data-parent='{$id}' style='display:none;'>";
-            tampilkanKomentar($data, $id);
-            echo "</div>";
-
-            echo "</div>";
+        echo "<div class='meta-line'>";
+        echo "<strong>".htmlspecialchars($row['nama_user'])."</strong>";
+        if ($isForumAuthor) {
+            echo "<span class='badge-penulis'>Penulis</span>";
         }
-    }
+        echo "<span class='waktu'>{$tanggal}</span>";
+        echo "</div>";
+
+        if ($row['balasan']) {
+            foreach ($data as $p) {
+                if ((int)$p['id'] === (int)$row['balasan']) {
+                    echo "<div class='reply-to'>Membalas @".htmlspecialchars($p['nama_user'])."</div>";
+                    break;
+                }
+            }
+        }
+
+        echo "<p>".nl2br(htmlspecialchars($row['isi_text']))."</p>";
+
+        echo "<div class='actions'>";
+
+        if ($sessionUserId) {
+            echo "<button class='reply-btn' data-parent='{$id}'>Balas</button>";
+        }
+
+        foreach ($data as $c) {
+            if ((int)$c['balasan'] === $id) {
+                echo "<button class='toggle-replies' data-id='{$id}'>Tampilkan Balasan</button>";
+                break;
+            }
+        }
+
+        if ($sessionRole === 'admin' || $isOwnComment) {
+    echo "
+    <button class='delete-btn' data-id='{$id}' title='Hapus komentar'>
+        <svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor'
+             stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>
+            <polyline points='3 6 5 6 21 6'></polyline>
+            <path d='M19 6l-1 14H6L5 6'></path>
+            <path d='M10 11v6'></path>
+            <path d='M14 11v6'></path>
+            <path d='M9 6V4h6v2'></path>
+        </svg>
+    </button>";
 }
 
+        echo "</div>";
+
+        echo "<div class='reply-container' data-parent='{$id}' style='display:none;'>";
+        tampilkanKomentar($data, $id);
+        echo "</div>";
+
+        echo "</div>";
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -213,7 +205,9 @@ function tampilkanKomentar($data, $parent = 0) {
 
     .komentar-item p { margin:4px 0 8px 0; line-height:1.45; white-space:pre-wrap; }
 
-    .actions { display:flex; gap:10px; align-items:center; margin-top:6px; }
+    .actions { display:flex; gap:8px; align-items:center; margin-top:6px; }
+    .actions .reply-btn { order: 1; }
+    .actions .delete-btn {order: 2;}
     .reply-btn, .toggle-replies { background:none; border:none; color:#a30202; font-weight:700; cursor:pointer; font-size:13px; padding:0; }
     .reply-btn:hover, .toggle-replies:hover { text-decoration:underline; }
 
@@ -307,6 +301,25 @@ function tampilkanKomentar($data, $parent = 0) {
 .popup-btn-cancel:hover {
   background: #bbbbbb;
   transform: scale(1.05);
+}
+* Popup konfirmasi hapus */
+#deletePopup .popup-buttons {
+    display: flex;
+    flex-direction: row-reverse; /* bikin Hapus ke kanan */
+    gap: 12px;
+}
+.popup-btn-login,
+.popup-btn-cancel {
+    outline: none;
+    border: none;
+}
+
+.popup-btn-login:focus,
+.popup-btn-login:active,
+.popup-btn-cancel:focus,
+.popup-btn-cancel:active {
+    outline: none;
+    box-shadow: none;
 }
 
  /* delete button komentar */
@@ -452,7 +465,7 @@ function tampilkanKomentar($data, $parent = 0) {
 <div class="container">
   <h1><?= htmlspecialchars($forum['judul']) ?></h1>
   <div class="meta">
-    Oleh: <strong><?= htmlspecialchars($forum['penulis_nama'] ?? 'Penulis') ?></strong> |
+    Oleh: <strong><?= htmlspecialchars($forum['nama_penulis'] ?? 'Penulis') ?></strong> |
     <?= date('d M Y, H:i', strtotime($forum['tanggal'])) ?>
   </div>
 
@@ -470,7 +483,7 @@ function tampilkanKomentar($data, $parent = 0) {
 
     <?php if ($isLoggedIn): ?>
       <form id="formKomentar" class="komentar-form" onsubmit="return false;">
-        <p><strong><?= htmlspecialchars($_SESSION['nama'] ?? $_SESSION['email'] ?? 'Anonim') ?></strong></p>
+        <strong><?= htmlspecialchars($_SESSION['nama'] ?? 'User') ?></strong>
         <textarea id="mainIsi" name="isi" placeholder="Tulis komentar..." required></textarea>
         <div class="btns">
           <button class="primary" id="kirimUtama">Kirim</button>
@@ -515,7 +528,7 @@ function tampilkanKomentar($data, $parent = 0) {
 
 <script>
 
-const isLoggedIn = <?= isset($_SESSION['email']) ? 'true' : 'false' ?>;
+const isLoggedIn = <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
 
 /* helper popup */
 function showLoginPopup(){ document.getElementById('loginPopup').style.display='flex'; }
@@ -572,10 +585,13 @@ document.getElementById("confirmDeleteBtn")?.addEventListener("click", async () 
     if (!deleteCommentId) return;
 
     const res = await fetch("hapuskomentar.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ id: deleteCommentId })
-    });
+    method: "POST",
+    credentials: "same-origin", // <<< WAJIB
+    headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: new URLSearchParams({ id: deleteCommentId })
+});
 
     const r = await res.text();
     if (r === "success") {

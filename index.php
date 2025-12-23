@@ -77,7 +77,7 @@ if ($isSearch) {
 
 $sql .= "
 GROUP BY a.id
-ORDER BY a.created_at DESC
+ORDER BY total_komentar DESC, a.created_at DESC
 ";
 
 if (!$isSearch) {

@@ -44,7 +44,10 @@ if (!empty($keyword)) {
     $types .= "ss";
 }
 
-$sql .= " GROUP BY a.id ORDER BY komentar DESC, a.created_at DESC";
+$sql .= "
+GROUP BY a.id
+ORDER BY a.created_at DESC
+";
 
 $stmt = $conn->prepare($sql);
 
@@ -126,6 +129,35 @@ main {
     gap: 30px;
     margin-top: 40px;
     margin-bottom: 100px;
+}
+
+/* === FIX LEBAR ARTIKEL MODE KATEGORI (DESKTOP) === */
+.articles-wrapper {
+  max-width: 1200px;       /* sama seperti tampilan SEMUA */
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Grid stabil seperti halaman SEMUA */
+.articles-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 kolom desktop */
+  gap: 24px;
+  align-items: stretch;
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .articles-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .articles-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
    .article-card {
@@ -1117,6 +1149,7 @@ footer {
   <span id="closeModal">&times;</span>
   <img id="modalImg" src="">
 </div>
+<section class="articles-wrapper">
   <section class="articles-grid">
     <?php if ($result && $result->num_rows > 0): ?>
       <?php while ($row = $result->fetch_assoc()): ?>
@@ -1168,6 +1201,7 @@ $hasImage = ($gambar !== '' && $gambar !== null && file_exists("uploads/" . $gam
     <?php else: ?>
       <div class="no-article">Tidak ada artikel yang cocok dengan pencarian.</div>
     <?php endif; ?>
+    </section>
   </section>
 </main>
 

@@ -446,6 +446,67 @@ if ($_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['action'], $_POST['id'
 .open-pdf-btn:hover {
     background: #5c0606ff;
 }
+/* === GOOGLE-LIKE IMAGE PREVIEW === */
+.image-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.image-modal.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.image-modal img {
+  max-width: 135vw;
+  max-height: 125vh;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  animation: zoomIn 0.35s ease;
+}
+
+@keyframes zoomIn {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Tombol close */
+.close-btn {
+  position: absolute;
+  top: 24px;
+  right: 30px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: 0.25s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255,255,255,0.4);
+  transform: scale(1.15);
+}
   </style>
 </head>
 <body>
@@ -574,26 +635,24 @@ if (isset($_GET['id'])) {
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-  let rejectId = null;
-  const rejectModal = document.getElementById("rejectModal");
-  const imageModal = document.getElementById("imageModal");
-  const modalImg = document.getElementById("modalImg");
+document.addEventListener("DOMContentLoaded", function () {
 
-  // === Modal Tolak ===
-  window.openModal = function(id) {
-    rejectId = id;
+  /* ================= MODAL TOLAK ================= */
+  const rejectModal = document.getElementById("rejectModal");
+
+  window.openModal = function () {
     rejectModal.classList.add("show");
   };
 
-  window.closeModal = function() {
+  window.closeModal = function () {
     rejectModal.classList.remove("show");
   };
 
-  window.submitReject = function() {
+  window.submitReject = function () {
     const form = document.getElementById("reviewForm");
     const reason = document.getElementById("rejectReason").value.trim();
-    document.getElementById("hiddenBalasan").value = reason || "Artikel ditolak tanpa keterangan";
+    document.getElementById("hiddenBalasan").value =
+      reason || "Artikel ditolak tanpa keterangan";
 
     const actionInput = document.createElement("input");
     actionInput.type = "hidden";
@@ -601,48 +660,48 @@ document.addEventListener("DOMContentLoaded", function() {
     actionInput.value = "reject";
     form.appendChild(actionInput);
 
-    rejectModal.classList.remove("show");
     form.submit();
   };
 
-  // === Modal PDF ===
-  document.querySelector(".open-pdf-btn").addEventListener("click", function () {
-    document.getElementById("pdfModal").style.display = "block";
-});
+  /* ================= MODAL PDF ================= */
+  const pdfBtn = document.querySelector(".open-pdf-btn");
+  const pdfModal = document.getElementById("pdfModal");
 
-document.querySelector(".pdf-close").addEventListener("click", function () {
-    document.getElementById("pdfModal").style.display = "none";
-});
+  if (pdfBtn && pdfModal) {
+    pdfBtn.addEventListener("click", () => {
+      pdfModal.style.display = "block";
+    });
 
-window.onclick = function(event) {
-    const modal = document.getElementById("pdfModal");
-    if (event.target === modal) {
-        modal.style.display = "none";
-    }
-}
+    pdfModal.addEventListener("click", (e) => {
+      if (e.target === pdfModal) pdfModal.style.display = "none";
+    });
+  }
 
-  // === Modal Gambar ===
+  /* ================= MODAL GAMBAR ================= */
+  const imageModal = document.getElementById("imageModal");
+  const modalImg = document.getElementById("modalImg");
+
   document.querySelectorAll(".review-image").forEach(img => {
     img.addEventListener("click", () => {
       modalImg.src = img.src;
       imageModal.classList.add("show");
+      document.body.style.overflow = "hidden";
     });
   });
 
-  window.closeImageModal = function() {
+  window.closeImageModal = function () {
     imageModal.classList.remove("show");
+    document.body.style.overflow = "";
   };
 
   imageModal.addEventListener("click", (e) => {
-    if (e.target === imageModal) imageModal.classList.remove("show");
+    if (e.target === imageModal) closeImageModal();
   });
 
-  window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      rejectModal.classList.remove("show");
-      imageModal.classList.remove("show");
-    }
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeImageModal();
   });
+
 });
 </script>
 </body>

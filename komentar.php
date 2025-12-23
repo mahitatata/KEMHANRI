@@ -39,23 +39,36 @@ if ($artikel['tipe'] === 'internal') {
 
 $isLoggedIn = isset($_SESSION['email']);
 $nama_user = $_SESSION['nama'] ?? $_SESSION['email'] ?? "Anonim";
-$pegawai_id = $_SESSION['pegawai_id'] ?? null;
+$user_id = $_SESSION['user_id'] ?? null;
 $role = $_SESSION['role'] ?? 'user';
 
 // Insert komentar
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['komentar']) && $isLoggedIn) {
     $isi = trim($_POST['isi']);
     if (!empty($isi)) {
-        $parent_id = !empty($_POST['parent_id']) ? intval($_POST['parent_id']) : null;
-        $stmt_insert = $conn->prepare("INSERT INTO komentar (artikel_id, parent_id, Nama, Isi_Text, pegawai_id) VALUES (?, ?, ?, ?, ?)");
-        $stmt_insert->bind_param("iissi", $artikel_id, $parent_id, $nama_user, $isi, $pegawai_id);
+        $parent_id = isset($_POST['parent_id']) && $_POST['parent_id'] !== ""
+    ? intval($_POST['parent_id'])
+    : null;
+
+$stmt_insert = $conn->prepare(
+  "INSERT INTO komentar (artikel_id, parent_id, Isi_Text, user_id)
+   VALUES (?, ?, ?, ?)"
+);
+$stmt_insert->bind_param("iisi", $artikel_id, $parent_id, $isi, $user_id);
         if ($stmt_insert->execute()) exit("success"); else exit("error");
     }
 }
 
 // Fungsi tampilkan komentar modern dengan toggle dan reply kecil
 function tampilkanKomentarModern($conn, $artikel_id, $parent_id = null, $id_pembuat = null) {
-    $sql = "SELECT * FROM komentar WHERE artikel_id = ? AND " . ($parent_id === null ? "parent_id IS NULL" : "parent_id = ?") . " ORDER BY Tanggal ASC";
+    $sql = "
+SELECT k.*, r.nama 
+FROM komentar k
+LEFT JOIN regsitrasi r ON k.user_id = r.id
+WHERE k.artikel_id = ?
+AND ".($parent_id === null ? "k.parent_id IS NULL" : "k.parent_id = ?")."
+ORDER BY k.Tanggal ASC
+";
     $stmt = $conn->prepare($sql);
     if ($parent_id === null) $stmt->bind_param("i", $artikel_id);
     else $stmt->bind_param("ii", $artikel_id, $parent_id);
@@ -64,22 +77,27 @@ function tampilkanKomentarModern($conn, $artikel_id, $parent_id = null, $id_pemb
 
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
-            $isAuthor = ($id_pembuat && $row['pegawai_id'] == $id_pembuat);
-            $isOwnComment = ($row['pegawai_id'] && $row['pegawai_id'] == ($_SESSION['pegawai_id'] ?? 0));
+            $isAuthor = ($id_pembuat && $row['user_id'] == $id_pembuat);
+            $isOwnComment = ($row['user_id'] && $row['user_id'] == ($_SESSION['user_id'] ?? 0));
             $nestedClass = $parent_id ? "nested" : "";
 
             // Nama user yang dibalas (jika reply)
             $replyTo = "";
-            if ($parent_id) {
-                $stmtParent = $conn->prepare("SELECT Nama FROM komentar WHERE id = ?");
-                $stmtParent->bind_param("i", $parent_id);
-                $stmtParent->execute();
-                $resParent = $stmtParent->get_result();
-                if($resParent->num_rows>0){
-                    $rowParent = $resParent->fetch_assoc();
-                    $replyTo = "Membalas @" . htmlspecialchars($rowParent['Nama']);
-                }
-            }
+if ($parent_id) {
+    $stmtParent = $conn->prepare("
+        SELECT r.nama
+        FROM komentar k
+        LEFT JOIN regsitrasi r ON k.user_id = r.id
+        WHERE k.id = ?
+    ");
+    $stmtParent->bind_param("i", $parent_id);
+    $stmtParent->execute();
+    $resParent = $stmtParent->get_result();
+    if ($resParent->num_rows > 0) {
+        $rowParent = $resParent->fetch_assoc();
+        $replyTo = "Membalas @" . htmlspecialchars($rowParent['nama']);
+    }
+}
 
             // Cek apakah komentar ini punya reply
             $stmtCheck = $conn->prepare("SELECT COUNT(*) as total FROM komentar WHERE parent_id = ?");
@@ -89,7 +107,7 @@ function tampilkanKomentarModern($conn, $artikel_id, $parent_id = null, $id_pemb
             $hasReplies = $resCheck->fetch_assoc()['total'] > 0;
 
             echo "<div class='komentar-item {$nestedClass}' data-id='{$row['id']}'>";
-            echo "<strong>" . htmlspecialchars($row['Nama']) . "</strong>";
+            echo "<strong>" . htmlspecialchars($row['nama'] ?? 'Anonim') . "</strong>";
             if ($isAuthor) echo " <span class='badge-penulis'>Penulis</span>";
             echo "<span class='waktu'>" . date("d M Y H:i", strtotime($row['Tanggal'])) . "</span>";
             
@@ -113,7 +131,7 @@ if ((isset($_SESSION['role']) && $_SESSION['role'] === 'admin') || $isOwnComment
     </button>";
 }
 
-if (!$isOwnComment) {
+if (isset($_SESSION['user_id'])) {
     echo "<button class='reply-btn' data-parent='{$row['id']}'>Balas</button>";
 }
 
@@ -280,6 +298,19 @@ body{font-family:'Inter',sans-serif;margin:0;background:#f9fafb;color:#333;}
   justify-content: center;
   gap: 12px;
 }
+.popup-btn-login,
+.popup-btn-cancel {
+    outline: none;
+    border: none;
+}
+
+.popup-btn-login:focus,
+.popup-btn-login:active,
+.popup-btn-cancel:focus,
+.popup-btn-cancel:active {
+    outline: none;
+    box-shadow: none;
+}
 .popup-btn-login {
    background: #a30202;
   color: white;
@@ -316,7 +347,7 @@ body{font-family:'Inter',sans-serif;margin:0;background:#f9fafb;color:#333;}
 
     /* Comment item */
     .komentar-item { margin: 18px 0; padding: 0; }
-    .komentar-item.nested { margin-left: 26px; border-left:1px solid #c74d4dff; padding-left:12px; }
+    .komentar-item.nested { margin-left: 10px; border-left:2px solid #c74d4dff; padding-left:10px; }
 
     .komentar-item .meta-line { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
     .komentar-item strong { color:#a30202; font-weight:700; display:block; }
@@ -326,7 +357,9 @@ body{font-family:'Inter',sans-serif;margin:0;background:#f9fafb;color:#333;}
 
     .komentar-item p { margin:4px 0 8px 0; line-height:1.45; white-space:pre-wrap; }
 
-    .actions { display:flex; gap:10px; align-items:center; margin-top:6px; }
+    .actions { display:flex; gap:8px; align-items:center; margin-top:6px; }
+    .actions .reply-btn { order: 1; }
+    .actions .delete-btn {order: 2;}
     .reply-btn, .toggle-replies { background:none; border:none; color:#a30202; font-weight:700; cursor:pointer; font-size:13px; padding:0; }
     .reply-btn:hover, .toggle-replies:hover { text-decoration:underline; }
 
@@ -449,8 +482,9 @@ style="background:#a30202;color:white;border:none;padding:0.8rem 1.5rem;border-r
     <h2>Konfirmasi Hapus</h2>
     <p>Apakah kamu yakin ingin menghapus komentar ini?</p>
     <div class="popup-buttons">
-      <button class="popup-btn-login" id="confirmDeleteBtn">Hapus</button>
       <button class="popup-btn-cancel" id="cancelDeleteBtn">Batal</button>
+      <button class="popup-btn-login" id="confirmDeleteBtn">Hapus</button>
+
     </div>
   </div>
 </div>
@@ -524,7 +558,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       e.preventDefault();
       const text=isi.value.trim();
       if(!text) return;
-      const res=await fetch("komentar.php?id=<?= $artikel_id ?>",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({komentar:1,isi:text})});
+      const res=await fetch("?id=<?= $artikel_id ?>",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({komentar:1,isi:text})});
       const r=await res.text();
       if(r==="success") location.reload();
     });
@@ -605,7 +639,7 @@ document.getElementById("confirmDeleteBtn")?.addEventListener("click", async () 
         ev.preventDefault();
         const isiText=replyForm.querySelector("textarea").value.trim();
         if(!isiText) return;
-        const res=await fetch("komentar.php?id=<?= $artikel_id ?>",{method:"POST",
+        const res=await fetch("?id=<?= $artikel_id ?>",{method:"POST",
         headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({komentar:1,isi:isiText,parent_id:parentId})});
         const r=await res.text();
         if(r==="success") location.reload();

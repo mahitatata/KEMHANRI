@@ -57,11 +57,8 @@ if (!empty($keyword)) {
 }
 
 $sql .= "
-GROUP BY a.id 
-ORDER BY 
-    CASE WHEN COUNT(k.id) = 0 THEN 0 ELSE 1 END DESC,
-    COUNT(k.id) DESC,
-    a.created_at DESC
+GROUP BY a.id
+ORDER BY a.created_at DESC
 ";
 
 // API kecil: jumlah komentar real-time
