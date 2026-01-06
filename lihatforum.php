@@ -493,6 +493,54 @@ function tampilkanKomentar($data, $parent = 0) {
     transform: scale(1.15);
 }
 
+/* Gambar forum */
+.forum-image {
+    max-width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+/* === LAMPIRAN FORUM (MENYAMAI ARTIKEL) === */
+
+/* GAMBAR */
+.forum-image-wrap img {
+    width: 100%;
+    max-height: 380px;
+    object-fit: cover;
+    margin: 20px 0;
+    border-radius: 0;
+    border: 3px solid #7c0000;
+    box-shadow: 0 4px 10px rgba(22,22,22,0.1);
+}
+
+/* PDF */
+.forum-pdf-wrap {
+    margin: 20px 0;
+}
+
+.btn-pdf {
+    display: inline-block;
+    background: #8B0000;
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    outline: none;
+    text-decoration: none;
+    border: none;
+    font-size: 14px;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.btn-pdf:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.35);
+}
+
+.btn-pdf:hover {
+    background: #7a0202;
+    transform: translateY(-2px);
+}
   </style>
 </head>
 <body>
@@ -506,6 +554,24 @@ function tampilkanKomentar($data, $parent = 0) {
   </div>
 
   <div class="isi_text"><?= nl2br(htmlspecialchars($forum['isi_text'])) ?></div>
+
+ <?php if (!empty($forum['gambar'])): ?>
+  <div class="forum-image-wrap">
+    <img src="uploads/<?= htmlspecialchars($forum['gambar']) ?>" alt="Gambar Forum">
+  </div>
+<?php endif; ?>
+
+<?php if (!empty($forum['file_pdf'])): ?>
+  <div class="forum-pdf-wrap">
+    <strong>📎 Lampiran PDF:</strong><br><br>
+
+    <button id="pdfBtn"
+      class="btn-pdf"
+      data-file="<?= htmlspecialchars($forum['file_pdf']) ?>">
+      📄 Buka File PDF
+    </button>
+  </div>
+<?php endif; ?>
 
   <section class="komentar-list" id="daftarKomentar">
     <h2>Komentar</h2>
@@ -558,6 +624,17 @@ function tampilkanKomentar($data, $parent = 0) {
     <div class="popup-buttons">
       <button class="popup-btn-cancel" id="cancelDeleteBtn">Batal</button>
       <button class="popup-btn-login" id="confirmDeleteBtn">Hapus</button>
+    </div>
+  </div>
+</div>
+
+<div class="popup-login" id="pdfPopup">
+  <div class="popup-content">
+    <h2>Anda belum login</h2>
+    <p>Silakan login terlebih dahulu untuk membuka file PDF ini.</p>
+    <div class="popup-buttons">
+      <button class="popup-btn-cancel" id="cancelPdfPopup">Batal</button>
+      <a href="login.php" class="popup-btn-login">Login</a>
     </div>
   </div>
 </div>
@@ -758,6 +835,25 @@ document.getElementById("confirmForumDelete")?.addEventListener("click", async (
     } else {
         alert("Gagal menghapus komentar!");
     }
+});
+
+function showPdfPopup() {
+    document.getElementById("pdfPopup").style.display = "flex";
+}
+function closePdfPopup() {
+    document.getElementById("pdfPopup").style.display = "none";
+}
+
+document.getElementById("cancelPdfPopup")?.addEventListener("click", closePdfPopup);
+
+document.getElementById("pdfBtn")?.addEventListener("click", function () {
+    const file = this.dataset.file;
+
+    <?php if (!$isLoggedIn): ?>
+        showPdfPopup();
+    <?php else: ?>
+        window.location.href = "lihatpdf.php?file=" + encodeURIComponent(file);
+    <?php endif; ?>
 });
 </script>
 </body>

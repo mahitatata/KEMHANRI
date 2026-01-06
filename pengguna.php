@@ -252,7 +252,7 @@ tbody tr:hover {
   </div>
 
   <div class="back-btn-wrapper">
-    <a href="<?= $backUrl ?>" class="btn-back-shopee">
+    <a href="dashboard.php" class="btn-back-shopee">
         <svg class="arrow-shopee" viewBox="0 0 24 24">
             <path d="M15 6l-6 6 6 6" />
         </svg>

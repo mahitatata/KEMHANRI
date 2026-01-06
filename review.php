@@ -188,12 +188,12 @@ if ($_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['action'], $_POST['id'
     }
 
    .back-btn-wrapper {
-    max-width: 1000px;
-    margin: 20px auto 0;
-    padding: 0 50px;
+    width: 92%;
+    margin: 22px auto 0;
+    padding-left: 4px;
 }
 
-    .btn-back-shopee {
+   .btn-back-shopee {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -525,7 +525,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['action'], $_POST['id'
 </div>
 
   <div class="back-btn-wrapper">
-    <a href="<?= $backUrl ?>" class="btn-back-shopee">
+    <a href="dashboard.php" class="btn-back-shopee">
         <svg class="arrow-shopee" viewBox="0 0 24 24">
             <path d="M15 6l-6 6 6 6" />
         </svg>

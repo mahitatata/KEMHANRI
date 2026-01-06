@@ -19,8 +19,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (password_verify($password, $user['password'])) {
 
             $_SESSION['user_id'] = $user['ID']; // simpan ID user-nya
+            $_SESSION['pegawai_id'] = $user['ID'];
             $_SESSION['nama'] = $user['nama'];
-            $_SESSION['role'] = $user['role'];
+            $_SESSION['role'] = strtolower(trim($user['role']));
             $_SESSION['email'] = $user['email'];
 
 

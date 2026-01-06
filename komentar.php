@@ -198,46 +198,6 @@ body{font-family:'Inter',sans-serif;margin:0;background:#f9fafb;color:#333;}
     box-shadow: none;
 }
 
-.btn-back-shopee {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 44px;
-    height: 44px;
-    background: #ffffff;
-    border-radius: 50%;
-    border: 1px solid #e5e5e5;
-    text-decoration: none;
-    cursor: pointer;
-    transition: 0.2s ease;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-}
-
-.btn-back-shopee::before {
-    content: "";
-    color: #7a0202;
-    position: absolute;
-    width: 58px;     
-    height: 58px;
-    border-radius: 10%;
-    background: rgba(0,0,0,0.05);  
-    z-index: -1;    
-}
-
-.btn-back-shopee:hover {
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
-    transform: scale(1.05);
-}
-
-.arrow-shopee {
-    width: 22px;
-    stroke: #333;
-    stroke-width: 3.2; 
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
 /* Tombol Batal */
 #batalReply {
     background:#ccc;      
@@ -415,35 +375,108 @@ body{font-family:'Inter',sans-serif;margin:0;background:#f9fafb;color:#333;}
     transform: scale(1.2);
 }
 
+/* BUTTON BUKA FILE PDF */
+.btn-pdf {
+    display: inline-block;
+    background: #8B0000;
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    outline: none;
+    text-decoration: none;
+    border: none;
+    font-size: 14px;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.btn-pdf:hover {
+    background: #7a0202;
+    transform: translateY(-2px);
+}
+
+.btn-pdf:active {
+    transform: translateY(0);
+}
+
+.artikel-actions {
+    margin-top: 10px;
+}
+
+/* HEADER ARTIKEL */
+.artikel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+/* ICON DOWNLOAD */
+.icon-download {
+    background: none;          
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #111;              
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.icon-download svg {
+    width: 22px;
+    height: 22px;
+}
+
+.icon-download:hover {
+    color: #777; 
+    transform: translateY(-2px);
+}
+
+.icon-download:active {
+    color: #555;
+    transform: translateY(0);
+}
+
+.icon-download:focus,
+.icon-download:active {
+    outline: none;
+    box-shadow: none;
+}
+
 @media(max-width:600px){.artikel-box,.komentar-section,.komentar-list{padding:1rem;}.artikel-box h1{font-size:1.5rem;}}
 </style>
 </head>
 <body>
 <main class="container">
-<a href="javascript:history.back()" class="btn-back-shopee">
-    <svg class="arrow-shopee" viewBox="0 0 24 24">
-        <path d="M15 6l-6 6 6 6" />
-    </svg>
 </a>
 <article class="artikel-box">
-<h1>
-    <?= htmlspecialchars($artikel['judul']); ?>
+<div class="artikel-header">
+    <div class="artikel-title">
+        <h1>
+            <?= htmlspecialchars($artikel['judul']); ?>
+            <?php if ($artikel['tipe'] === 'internal'): ?>
+                <span class="label-internal">Internal</span>
+            <?php endif; ?>
+        </h1>
+        <p class="artikel-date"><?= date("d M Y H:i", strtotime($artikel['created_at'])); ?></p>
+    </div>
 
-    <?php if ($artikel['tipe'] === 'internal'): ?>
-        <span class="label-internal">Internal</span>
-    <?php endif; ?>
-</h1>
-<p class="artikel-date"><?= date("d M Y H:i", strtotime($artikel['created_at'])); ?></p>
+    <button id="downloadPdfBtn" class="icon-download" title="Download Artikel (PDF)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v12m0 0l4-4m-4 4l-4-4"/>
+            <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/>
+        </svg>
+    </button>
+</div>
 <?php if(!empty($artikel['gambar'])): ?>
 <div class="artikel-image"><img src="uploads/<?= htmlspecialchars($artikel['gambar']); ?>" alt="Gambar Artikel"></div>
 <?php endif; ?>
 <?php if (!empty($artikel['pdf'])): ?>
     <div style="margin: 20px 0;">
         <strong>📎 Lampiran PDF:</strong><br><br>
-        <button id="pdfBtn"
-           style="display:inline-block; background:#8B0000; color:white; padding:10px 18px; border-radius:8px; font-weight:600; border:none; cursor:pointer;">
-            📄 Buka File PDF
-        </button>
+        <button id="pdfBtn" class="btn-pdf">
+    📄 Buka File PDF
+    </button>
     </div>
 <?php endif; ?>
 <div class="artikel-content"><?= nl2br(htmlspecialchars($artikel['isi_artikel'])); ?></div>
@@ -633,7 +666,6 @@ document.getElementById("confirmDeleteBtn")?.addEventListener("click", async () 
         <textarea name="isi" placeholder="Tulis balasan..." required></textarea>
         <button type="button" id="batalReply">Batal</button>
         <button type="submit">Kirim Balasan</button>
-
       `;
       parentComment.appendChild(replyForm);
 
@@ -659,6 +691,11 @@ document.getElementById("confirmDeleteBtn")?.addEventListener("click", async () 
       e.preventDefault();
     }
   }
+});
+
+// button donwload
+document.getElementById("downloadPdfBtn")?.addEventListener("click", () => {
+    window.location.href = "download_artikel.php?id=<?= $artikel_id ?>";
 });
 
     // Toggle balasan

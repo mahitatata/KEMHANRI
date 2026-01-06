@@ -1,0 +1,13 @@
+{
+    "name": "ika_a/kemhan_website",
+    "type": "project",
+    "require": {
+        "dompdf/dompdf": "^3.1"
+    },
+    "authors": [
+        {
+            "name": "mahitatata",
+            "email": "samahita08@gmail.com"
+        }
+    ]
+}

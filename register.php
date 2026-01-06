@@ -51,10 +51,14 @@ if (isset($_POST['register'])) {
                     VALUES ('$nama', '$email', '$satker', '$password', '$role')";
             if ($conn->query($sql) === TRUE) {
                 session_start();
+                $_SESSION['user_id'] = $conn->insert_id; // ID user baru
+                $_SESSION['pegawai_id'] = $conn->insert_id;
                 $_SESSION['email'] = $email;
                 $_SESSION['role'] = $role;
                 $_SESSION['nama'] = $nama;
+                $_SESSION['satker'] = $satker; // opsional
 
+                
                 // Redirect setelah registrasi sukses
                 if ($role === "admin") {
                     header("Location: dashboard.php");

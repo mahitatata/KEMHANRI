@@ -12,9 +12,9 @@ if (isset($_GET['from'])) {
   }
 }
 
-if (!isset($_SESSION['pegawai_id'])) {
-  header("Location: login.php");
-  exit;
+if (!isset($_SESSION['pegawai_id']) || $_SESSION['role'] !== 'pegawai') {
+    header("Location: login.php");
+    exit;
 }
 
 $pegawai_id = $_SESSION['pegawai_id'];
@@ -446,7 +446,7 @@ if (isset($_GET['hapus'])) {
 
   <div class="container">
 
-    <a href="javascript:history.back()" class="btn-back-shopee">
+    <a href="pegawai.php" class="btn-back-shopee">
     <svg class="arrow-shopee" viewBox="0 0 24 24">
         <path d="M15 6l-6 6 6 6" />
     </svg>
